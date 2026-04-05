@@ -6,7 +6,7 @@
 * 📦 **ItemBuilder:** A chainable builder for creating standard and custom items, featuring native support for PersistentDataContainers (PDC), custom model data, and glowing effects.
 * 🎨 **ColorUtils:** A bulletproof text formatter that flawlessly bridges modern Adventure `MiniMessage` tags (`<red>`) with legacy ampersand codes (`&c`) and hex codes (`&#ffffff`).
 * 🔄 **UpdateChecker:** An asynchronous, generic GitHub Gist update checker to easily notify admins of new plugin releases.
-* 🛠️ **Player & Time Utils:** Safe inventory management (drop-on-full) and clean time-formatting logic.
+* 🛠️ **Player:** Safe inventory management (drop-on-full).
 
 ## 🚀 Usage (Maven)
 
