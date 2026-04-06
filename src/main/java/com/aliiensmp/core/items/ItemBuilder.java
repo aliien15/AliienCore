@@ -62,6 +62,7 @@ public class ItemBuilder {
      * Automatically parses colors via ColorUtils.
      *
      * @param name The name in a string format
+     * @return The current ItemBuilder instance for chaining.
      */
     public ItemBuilder name(String name) {
         return name(ColorUtils.color(name));
@@ -74,8 +75,27 @@ public class ItemBuilder {
      * @return The current ItemBuilder instance for chaining.
      */
     public ItemBuilder lore(List<Component> lore) {
-        if (meta != null) meta.lore(lore);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.lore(lore);
+            item.setItemMeta(meta);
+        }
         return this;
+    }
+
+    /**
+     * Sets the lore using a list of raw Strings.
+     * Automatically parses colors via ColorUtils.
+     *
+     * @param lore The list of Strings to set as the item's lore.
+     * @return The current ItemBuilder instance for chaining.
+     */
+    public ItemBuilder stringLore(List<String> lore) {
+        if (lore == null) return this;
+        List<Component> componentLore = lore.stream()
+                .map(ColorUtils::color)
+                .toList();
+        return lore(componentLore);
     }
 
     /**
@@ -93,6 +113,17 @@ public class ItemBuilder {
             }
         }
         return this;
+    }
+
+    /**
+     * Appends a single raw string line to the bottom of the item's existing lore.
+     * Automatically parses colors via ColorUtils.
+     *
+     * @param line The String to append.
+     * @return The current ItemBuilder instance for chaining.
+     */
+    public ItemBuilder addLoreLine(String line) {
+        return addLoreLine(ColorUtils.color(line));
     }
 
     /**
