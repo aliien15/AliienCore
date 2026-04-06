@@ -56,7 +56,7 @@ public class ItemBuilder {
      * @return The current ItemBuilder instance for chaining.
      */
     public ItemBuilder name(Component name) {
-        if (meta != null) meta.displayName(name);
+        if (this.meta != null) this.meta.displayName(name);
         return this;
     }
 
@@ -78,10 +78,8 @@ public class ItemBuilder {
      * @return The current ItemBuilder instance for chaining.
      */
     public ItemBuilder lore(List<Component> lore) {
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.lore(lore);
-            item.setItemMeta(meta);
+        if (this.meta != null) {
+            this.meta.lore(lore);
         }
         return this;
     }
@@ -108,11 +106,11 @@ public class ItemBuilder {
      * @return The current ItemBuilder instance for chaining.
      */
     public ItemBuilder addLoreLine(Component line) {
-        if (meta != null) {
-            List<Component> lore = meta.hasLore() ? meta.lore() : new ArrayList<>();
+        if (this.meta != null) {
+            List<Component> lore = this.meta.hasLore() ? this.meta.lore() : new ArrayList<>();
             if (lore != null) {
                 lore.add(line);
-                meta.lore(lore);
+                this.meta.lore(lore);
             }
         }
         return this;
@@ -138,7 +136,7 @@ public class ItemBuilder {
      */
     @SuppressWarnings("deprecation")
     public ItemBuilder customModelData(int modelData) {
-        if (meta != null && modelData > 0) meta.setCustomModelData(modelData);
+        if (this.meta != null && modelData > 0) this.meta.setCustomModelData(modelData);
         return this;
     }
 
@@ -149,7 +147,7 @@ public class ItemBuilder {
      * @return The current ItemBuilder instance for chaining.
      */
     public ItemBuilder addFlags(ItemFlag... flags) {
-        if (meta != null) meta.addItemFlags(flags);
+        if (this.meta != null) this.meta.addItemFlags(flags);
         return this;
     }
 
@@ -161,9 +159,9 @@ public class ItemBuilder {
      * @return The current ItemBuilder instance for chaining.
      */
     public ItemBuilder glow(boolean glow) {
-        if (glow && meta != null) {
-            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        if (glow && this.meta != null) {
+            this.meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+            this.meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         }
         return this;
     }
@@ -180,9 +178,9 @@ public class ItemBuilder {
      * @return       The current ItemBuilder instance for chaining.
      */
     public ItemBuilder addStringTag(Plugin plugin, String key, String value) {
-        if (meta != null) {
+        if (this.meta != null) {
             NamespacedKey namespacedKey = new NamespacedKey(plugin, key);
-            meta.getPersistentDataContainer().set(namespacedKey, org.bukkit.persistence.PersistentDataType.STRING, value);
+            this.meta.getPersistentDataContainer().set(namespacedKey, org.bukkit.persistence.PersistentDataType.STRING, value);
         }
         return this;
     }
@@ -204,7 +202,7 @@ public class ItemBuilder {
      * @return The fully constructed ItemStack.
      */
     public ItemStack build() {
-        if (meta != null) item.setItemMeta(meta);
-        return item;
+        if (this.meta != null) this.item.setItemMeta(this.meta);
+        return this.item;
     }
 }

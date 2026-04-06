@@ -1,10 +1,12 @@
 package com.aliiensmp.core.menu;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.InventoryHolder;
@@ -29,12 +31,14 @@ public class MenuListener implements Listener {
      */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        InventoryHolder holder = event.getInventory().getHolder();
-
-        if (holder instanceof MenuHolder menuHolder) {
+        if (event.getView().getTopInventory().getHolder() instanceof MenuHolder menuHolder) {
             event.setCancelled(true);
 
-            int slot = event.getRawSlot();
+            if (event.getClickedInventory() == null || !event.getClickedInventory().equals(event.getView().getTopInventory())) {
+                return;
+            }
+
+            int slot = event.getSlot();
             ClickableItem clickable = menuHolder.getGui().getItems().get(slot);
 
             if (clickable != null && clickable.action() != null) {
@@ -82,6 +86,26 @@ public class MenuListener implements Listener {
                 }
             }
         }, null, 10L);
+    }
+
+    @EventHandler
+    public void onMenuClose(InventoryCloseEvent event) {
+        if (!(event.getInventory().getHolder() instanceof MenuHolder)) return;
+
+        Player player = (Player) event.getPlayer();
+
+        for (int i = 0; i < player.getInventory().getSize(); i++) {
+            ItemStack item = player.getInventory().getItem(i);
+            if (item != null && item.hasItemMeta()) {
+                NamespacedKey dupeKey = new NamespacedKey(plugin, "gui_item");
+
+                if (item.getItemMeta().getPersistentDataContainer().has(dupeKey, org.bukkit.persistence.PersistentDataType.BYTE)) {
+                    player.getInventory().setItem(i, null);
+                }
+            }
+        }
+
+        player.getServer().getScheduler().runTaskLater(plugin, player::updateInventory, 1L);
     }
 
     /**
