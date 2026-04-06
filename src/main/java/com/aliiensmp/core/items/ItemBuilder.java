@@ -1,5 +1,6 @@
 package com.aliiensmp.core.items;
 
+import com.aliiensmp.core.utils.ColorUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -54,6 +55,16 @@ public class ItemBuilder {
     public ItemBuilder name(Component name) {
         if (meta != null) meta.displayName(name);
         return this;
+    }
+
+    /**
+     * Sets the display name using a raw String.
+     * Automatically parses colors via ColorUtils.
+     *
+     * @param name The name in a string format
+     */
+    public ItemBuilder name(String name) {
+        return name(ColorUtils.color(name));
     }
 
     /**

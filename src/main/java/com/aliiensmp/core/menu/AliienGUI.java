@@ -18,7 +18,6 @@ import java.util.Map;
  */
 public class AliienGUI {
 
-    // Modern String-based NamespacedKey creation to avoid deprecation warnings
     protected static final NamespacedKey GUI_MARKER = NamespacedKey.fromString("aliiencore:gui_item");
 
     private final String title;
@@ -54,7 +53,7 @@ public class AliienGUI {
      * @param page The page number to display (replaces %page% in title).
      */
     public void open(Player player, int page) {
-        MenuHolder holder = new com.aliiensmp.core.menu.MenuHolder(this, page);
+        MenuHolder holder = new MenuHolder(this, page);
         String finalTitle = title.replace("%page%", String.valueOf(page));
         Component coloredTitle = ColorUtils.color(finalTitle);
 
