@@ -1,10 +1,12 @@
 package com.aliiensmp.core.items;
 
+import com.aliiensmp.core.menu.ClickableItem;
 import com.aliiensmp.core.utils.ColorUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -12,6 +14,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ItemBuilder {
 
@@ -182,6 +185,17 @@ public class ItemBuilder {
             meta.getPersistentDataContainer().set(namespacedKey, org.bukkit.persistence.PersistentDataType.STRING, value);
         }
         return this;
+    }
+
+    /**
+     * Builds the ItemStack and immediately wraps it into a ClickableItem
+     * with the specified click action for the GUI engine.
+     *
+     * @param action The logic to execute when a player clicks this item.
+     * @return A new ClickableItem ready to be placed in an AliienGUI.
+     */
+    public ClickableItem buildClickable(Consumer<InventoryClickEvent> action) {
+        return ClickableItem.of(this.build(), action);
     }
 
     /**
