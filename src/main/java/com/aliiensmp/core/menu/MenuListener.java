@@ -9,7 +9,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -97,9 +96,10 @@ public class MenuListener implements Listener {
         for (int i = 0; i < player.getInventory().getSize(); i++) {
             ItemStack item = player.getInventory().getItem(i);
             if (item != null && item.hasItemMeta()) {
-                NamespacedKey dupeKey = new NamespacedKey(plugin, "gui_item");
+                NamespacedKey dupeKey = AliienGUI.GUI_MARKER;
+                assert dupeKey != null;
 
-                if (item.getItemMeta().getPersistentDataContainer().has(dupeKey, org.bukkit.persistence.PersistentDataType.BYTE)) {
+                if (item.getItemMeta().getPersistentDataContainer().has(dupeKey, PersistentDataType.BYTE)) {
                     player.getInventory().setItem(i, null);
                 }
             }
