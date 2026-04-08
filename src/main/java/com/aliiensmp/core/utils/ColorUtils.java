@@ -42,7 +42,7 @@ public class ColorUtils {
                 LegacyComponentSerializer.legacySection().deserialize(text)
         );
 
-        return MM.deserialize(parsed);
+        return MM.deserialize("<!italic>" + parsed);
     }
 
     /**
