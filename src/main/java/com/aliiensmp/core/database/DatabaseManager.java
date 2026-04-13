@@ -110,7 +110,6 @@ public class DatabaseManager {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:sqlite:" + dbFile.getAbsolutePath());
 
-        // CRITICAL: SQLite locks the file. Pool size MUST be 1.
         config.setMaximumPoolSize(1);
         config.setConnectionTestQuery("SELECT 1");
 
