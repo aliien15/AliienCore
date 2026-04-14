@@ -98,7 +98,6 @@ public class DatabaseManager {
 
     /**
      * Initializes a local SQLite database connection.
-     * Uses Paper's natively bundled SQLite driver.
      */
     public void connectSQLite(Plugin plugin, String fileName) {
         // Ensure the plugin folder actually exists
@@ -118,7 +117,6 @@ public class DatabaseManager {
 
     /**
      * Initializes a network MySQL connection.
-     * Requires 'mysql-connector-j' shaded in pom.xml.
      */
     public void connectMySQL(String host, int port, String database, String username, String password) {
         HikariConfig config = new HikariConfig();
