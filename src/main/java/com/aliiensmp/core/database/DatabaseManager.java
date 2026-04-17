@@ -116,20 +116,26 @@ public class DatabaseManager {
     }
 
     /**
-     * Initializes a network MySQL connection.
+     * Standard MySQL connection with my default network optimizations
      */
     public void connectMySQL(String host, int port, String database, String username, String password) {
-        HikariConfig config = new HikariConfig();
+        connectMySQL(host, port, database, username, password, 10, 10, 10000, 1800000);
+    }
 
+    /**
+     * MySQL connection that allows full control over HikariCP optimizations
+     */
+    public void connectMySQL(String host, int port, String database, String username, String password, int maxPoolSize, int minIdle, long timeout, long maxLifetime) {
+
+        HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database);
         config.setUsername(username);
         config.setPassword(password);
 
-        // Network optimizations
-        config.setMaximumPoolSize(10);
-        config.setMinimumIdle(10);
-        config.setConnectionTimeout(10000);
-        config.setMaxLifetime(1800000);
+        config.setMaximumPoolSize(maxPoolSize);
+        config.setMinimumIdle(minIdle);
+        config.setConnectionTimeout(timeout);
+        config.setMaxLifetime(maxLifetime);
 
         connect(config);
     }
