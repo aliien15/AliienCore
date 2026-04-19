@@ -37,6 +37,26 @@ public class MessageUtils {
     }
 
     /**
+     * Broadcasts a fully formatted message to all online players and the console.
+     * Utilizes the existing send method to ensure PAPI placeholders are parsed per-player.
+     *
+     * @param prefix       The plugin's prefix (can be empty or null).
+     * @param message      The raw message string.
+     * @param placeholders Local placeholder pairs (e.g., "%event%", "boss_fight").
+     */
+    public static void broadcast(String prefix, String message, String... placeholders) {
+        if (message == null || message.isEmpty()) return;
+
+        // Send to all online players
+        org.bukkit.Bukkit.getOnlinePlayers().forEach(player ->
+                send(player, prefix, message, placeholders)
+        );
+
+        // Send to console
+        send(org.bukkit.Bukkit.getConsoleSender(), prefix, message, placeholders);
+    }
+
+    /**
      * Sends a fully formatted Action Bar message to a Player.
      *
      * @param player       The recipient.
