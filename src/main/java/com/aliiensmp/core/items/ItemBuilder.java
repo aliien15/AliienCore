@@ -93,10 +93,7 @@ public class ItemBuilder {
      */
     public ItemBuilder stringLore(List<String> lore) {
         if (lore == null) return this;
-        List<Component> componentLore = lore.stream()
-                .map(ColorUtils::color)
-                .toList();
-        return lore(componentLore);
+        return lore(ColorUtils.color(lore));
     }
 
     /**
@@ -106,13 +103,14 @@ public class ItemBuilder {
      * @return The current ItemBuilder instance for chaining.
      */
     public ItemBuilder addLoreLine(Component line) {
-        if (this.meta != null) {
-            List<Component> lore = this.meta.hasLore() ? this.meta.lore() : new ArrayList<>();
-            if (lore != null) {
-                lore.add(line);
-                this.meta.lore(lore);
-            }
+        if (line == null || this.meta == null) {
+            return this;
         }
+
+        List<Component> existingLore = this.meta.lore();
+        List<Component> lore = existingLore == null ? new ArrayList<>() : new ArrayList<>(existingLore);
+        lore.add(line);
+        this.meta.lore(lore);
         return this;
     }
 

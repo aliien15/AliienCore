@@ -1,12 +1,12 @@
 package com.aliiensmp.core.menu;
 
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
@@ -33,15 +33,30 @@ public class MenuListener implements Listener {
         if (event.getView().getTopInventory().getHolder() instanceof MenuHolder menuHolder) {
             event.setCancelled(true);
 
-            if (event.getClickedInventory() == null || !event.getClickedInventory().equals(event.getView().getTopInventory())) {
+            int rawSlot = event.getRawSlot();
+            if (rawSlot < 0 || rawSlot >= event.getView().getTopInventory().getSize()) {
                 return;
             }
 
-            int slot = event.getSlot();
-            ClickableItem clickable = menuHolder.getGui().getItems().get(slot);
+            ClickableItem clickable = menuHolder.getGui().getItems().get(rawSlot);
 
             if (clickable != null && clickable.action() != null) {
                 clickable.action().accept(event);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent event) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof MenuHolder)) {
+            return;
+        }
+
+        int topInventorySize = event.getView().getTopInventory().getSize();
+        for (int rawSlot : event.getRawSlots()) {
+            if (rawSlot < topInventorySize) {
+                event.setCancelled(true);
+                return;
             }
         }
     }
@@ -78,11 +93,10 @@ public class MenuListener implements Listener {
 
         // 10 ticks delay to ensure the inventory is fully loaded
         player.getScheduler().runDelayed(plugin, scheduledTask -> {
-            for (ItemStack item : player.getInventory().getContents()) {
-                if (isMarked(item)) {
-                    player.getInventory().remove(item);
-                    plugin.getLogger().warning("Cleaned a leaked GUI item from " + player.getName() + "'s inventory.");
-                }
+            int removedItems = purgeMarkedItems(player);
+            if (removedItems > 0) {
+                plugin.getLogger().warning("Cleaned " + removedItems + " leaked GUI item(s) from " + player.getName() + "'s inventory.");
+                player.updateInventory();
             }
         }, null, 10L);
     }
@@ -92,27 +106,34 @@ public class MenuListener implements Listener {
         if (!(event.getInventory().getHolder() instanceof MenuHolder)) return;
 
         Player player = (Player) event.getPlayer();
-
-        for (int i = 0; i < player.getInventory().getSize(); i++) {
-            ItemStack item = player.getInventory().getItem(i);
-            if (item != null && item.hasItemMeta()) {
-                NamespacedKey dupeKey = AliienGUI.GUI_MARKER;
-                assert dupeKey != null;
-
-                if (item.getItemMeta().getPersistentDataContainer().has(dupeKey, PersistentDataType.BYTE)) {
-                    player.getInventory().setItem(i, null);
-                }
-            }
+        if (purgeMarkedItems(player) > 0) {
+            player.getScheduler().runDelayed(plugin, scheduledTask -> player.updateInventory(), null, 1L);
         }
-
-        player.getServer().getScheduler().runTaskLater(plugin, player::updateInventory, 1L);
     }
 
     /**
      * Helper to check if an item carries the AliienCore GUI marker.
      */
     private boolean isMarked(ItemStack item) {
-        if (item == null || !item.hasItemMeta() || AliienGUI.GUI_MARKER == null) return false;
+        if (item == null || !item.hasItemMeta()) return false;
         return item.getItemMeta().getPersistentDataContainer().has(AliienGUI.GUI_MARKER, PersistentDataType.BYTE);
+    }
+
+    private int purgeMarkedItems(Player player) {
+        int removedItems = 0;
+
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            if (isMarked(player.getInventory().getItem(slot))) {
+                player.getInventory().setItem(slot, null);
+                removedItems++;
+            }
+        }
+
+        if (isMarked(player.getItemOnCursor())) {
+            player.setItemOnCursor(null);
+            removedItems++;
+        }
+
+        return removedItems;
     }
 }

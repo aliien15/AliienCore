@@ -17,6 +17,20 @@ import java.io.IOException;
  */
 public class ConfigManager {
 
+    private static final GeneralSettings GENERAL_SETTINGS = GeneralSettings.builder()
+            .setUseDefaults(false)
+            .build();
+    private static final LoaderSettings LOADER_SETTINGS = LoaderSettings.builder()
+            .setAutoUpdate(true)
+            .build();
+    private static final UpdaterSettings UPDATER_SETTINGS = UpdaterSettings.builder()
+            .setKeepAll(true)
+            .setVersioning(new BasicVersioning("config-version"))
+            .build();
+
+    private ConfigManager() {
+    }
+
     /**
      * Creates or loads a BoostedYAML configuration file.
      * Automatically handles plugin data folder creation, default file extraction,
@@ -28,13 +42,19 @@ public class ConfigManager {
      * @throws IOException If the file cannot be read, created, or saved.
      */
     public static YamlDocument loadConfig(JavaPlugin plugin, String fileName) throws IOException {
+        File configFile = new File(plugin.getDataFolder(), fileName);
+        File parent = configFile.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs() && !parent.isDirectory()) {
+            throw new IOException("Unable to create config directory: " + parent.getAbsolutePath());
+        }
+
         return YamlDocument.create(
-                new File(plugin.getDataFolder(), fileName),
+                configFile,
                 plugin.getResource(fileName),
-                GeneralSettings.builder().setUseDefaults(false).build(),
-                LoaderSettings.builder().setAutoUpdate(true).build(),
+                GENERAL_SETTINGS,
+                LOADER_SETTINGS,
                 DumperSettings.DEFAULT,
-                UpdaterSettings.builder().setKeepAll(true).setVersioning(new BasicVersioning("config-version")).build()
+                UPDATER_SETTINGS
         );
     }
 }

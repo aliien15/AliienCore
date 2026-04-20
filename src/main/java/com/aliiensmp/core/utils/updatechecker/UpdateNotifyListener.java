@@ -7,14 +7,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 public class UpdateNotifyListener implements Listener {
 
     private final Plugin plugin;
-    private final String gistUrl;
     private final String permissionNode;
     private final Supplier<Component> messageSupplier;
+    private final UpdateChecker updateChecker;
+    private final AtomicBoolean versionCheckInFlight = new AtomicBoolean(false);
+    private volatile String latestVersion;
 
     /**
      * Creates a generic Update Notify Listener for any plugin.
@@ -26,22 +29,41 @@ public class UpdateNotifyListener implements Listener {
      */
     public UpdateNotifyListener(Plugin plugin, String gistUrl, String permissionNode, Supplier<Component> messageSupplier) {
         this.plugin = plugin;
-        this.gistUrl = gistUrl;
         this.permissionNode = permissionNode;
         this.messageSupplier = messageSupplier;
+        this.updateChecker = new UpdateChecker(plugin, gistUrl);
+        refreshLatestVersion();
     }
 
     @EventHandler
-    @SuppressWarnings("deprecation")
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
-        if (player.hasPermission(permissionNode)) {
-            new UpdateChecker(plugin, gistUrl).getVersion(version -> {
-                if (!plugin.getDescription().getVersion().equals(version)) {
-                    player.sendMessage(messageSupplier.get());
-                }
-            });
+        if (!player.hasPermission(permissionNode)) {
+            return;
         }
+
+        String cachedLatestVersion = latestVersion;
+        if (cachedLatestVersion == null) {
+            refreshLatestVersion();
+            return;
+        }
+
+        if (!plugin.getDescription().getVersion().equals(cachedLatestVersion)) {
+            player.sendMessage(messageSupplier.get());
+        }
+    }
+
+    public void refreshLatestVersion() {
+        if (!versionCheckInFlight.compareAndSet(false, true)) {
+            return;
+        }
+
+        updateChecker.fetchVersion().whenComplete((version, throwable) -> {
+            if (version != null) {
+                version.ifPresent(value -> latestVersion = value);
+            }
+            versionCheckInFlight.set(false);
+        });
     }
 }

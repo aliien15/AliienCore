@@ -1,17 +1,31 @@
 package com.aliiensmp.core.utils;
 
-import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.Duration;
 
 /**
  * Universal dispatcher for sending formatted messages, action bars, and titles.
  * Automatically handles prefix injection, local placeholders, ColorUtils parsing,
  * and PlaceholderAPI integration (if installed).
  */
-public class MessageUtils {
+public final class MessageUtils {
+
+    private static final Method PLACEHOLDER_METHOD = resolvePlaceholderMethod();
+    private static final Title.Times DEFAULT_TITLE_TIMES = Title.Times.times(
+            Duration.ofMillis(500),
+            Duration.ofMillis(3500),
+            Duration.ofMillis(1000)
+    );
+
+    private MessageUtils() {
+    }
 
     /**
      * Sends a fully formatted message to a CommandSender.
@@ -48,12 +62,12 @@ public class MessageUtils {
         if (message == null || message.isEmpty()) return;
 
         // Send to all online players
-        org.bukkit.Bukkit.getOnlinePlayers().forEach(player ->
+        Bukkit.getOnlinePlayers().forEach(player ->
                 send(player, prefix, message, placeholders)
         );
 
         // Send to console
-        send(org.bukkit.Bukkit.getConsoleSender(), prefix, message, placeholders);
+        send(Bukkit.getConsoleSender(), prefix, message, placeholders);
     }
 
     /**
@@ -84,10 +98,10 @@ public class MessageUtils {
         String finalTitle = title != null ? applyPAPI(player, applyPlaceholders(title, placeholders)) : "";
         String finalSubtitle = subtitle != null ? applyPAPI(player, applyPlaceholders(subtitle, placeholders)) : "";
 
-        // Default timings: 10 ticks fade in, 70 ticks stay, 20 ticks fade out
-        player.showTitle(net.kyori.adventure.title.Title.title(
+        player.showTitle(Title.title(
                 ColorUtils.color(finalTitle),
-                ColorUtils.color(finalSubtitle)
+                ColorUtils.color(finalSubtitle),
+                DEFAULT_TITLE_TIMES
         ));
     }
 
@@ -111,9 +125,23 @@ public class MessageUtils {
      * Fails silently and returns the original text if PAPI is not installed.
      */
     private static String applyPAPI(Player player, String text) {
-        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-            return PlaceholderAPI.setPlaceholders(player, text);
+        if (PLACEHOLDER_METHOD == null || !Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            return text;
         }
-        return text;
+
+        try {
+            return (String) PLACEHOLDER_METHOD.invoke(null, player, text);
+        } catch (IllegalAccessException | InvocationTargetException | ClassCastException exception) {
+            return text;
+        }
+    }
+
+    private static Method resolvePlaceholderMethod() {
+        try {
+            return Class.forName("me.clip.placeholderapi.PlaceholderAPI")
+                    .getMethod("setPlaceholders", Player.class, String.class);
+        } catch (ClassNotFoundException | NoSuchMethodException exception) {
+            return null;
+        }
     }
 }

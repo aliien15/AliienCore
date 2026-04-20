@@ -12,13 +12,17 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The primary builder for creating interactive menus within the AliienCore framework.
  */
 public class AliienGUI {
 
-    protected static final NamespacedKey GUI_MARKER = NamespacedKey.fromString("aliiencore:gui_item");
+    protected static final NamespacedKey GUI_MARKER = Objects.requireNonNull(
+            NamespacedKey.fromString("aliiencore:gui_item"),
+            "Unable to create the AliienCore GUI marker key."
+    );
 
     private final String title;
     private final int rows;
@@ -42,6 +46,9 @@ public class AliienGUI {
      * @param item The clickable item to place.
      */
     public void setItem(int slot, ClickableItem item) {
+        if (slot < 0 || slot >= rows * 9 || item == null) {
+            return;
+        }
         items.put(slot, item);
     }
 
@@ -56,19 +63,21 @@ public class AliienGUI {
         MenuHolder holder = new MenuHolder(this, page);
         String finalTitle = title.replace("%page%", String.valueOf(page));
         Component coloredTitle = ColorUtils.color(finalTitle);
+        int size = rows * 9;
 
-        Inventory inventory = Bukkit.createInventory(holder, rows * 9, coloredTitle);
+        Inventory inventory = Bukkit.createInventory(holder, size, coloredTitle);
         holder.setInventory(inventory);
 
         for (Map.Entry<Integer, ClickableItem> entry : items.entrySet()) {
             int slot = entry.getKey();
-            ItemStack item = entry.getValue().itemStack();
+            ClickableItem clickableItem = entry.getValue();
+            if (clickableItem == null) {
+                continue;
+            }
 
-            // Anti-dupe prevention
-            markItem(item);
-
-            if (slot >= 0 && slot < (rows * 9)) {
-                inventory.setItem(slot, item);
+            ItemStack item = clickableItem.itemStack();
+            if (item != null && slot < size) {
+                inventory.setItem(slot, markItem(item));
             }
         }
 
@@ -80,13 +89,20 @@ public class AliienGUI {
      *
      * @param item The item to protect.
      */
-    private void markItem(ItemStack item) {
-        if (item == null || item.getType().isAir() || GUI_MARKER == null) return;
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) return;
+    private ItemStack markItem(ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return item;
+        }
+
+        ItemStack markedItem = item.clone();
+        ItemMeta meta = markedItem.getItemMeta();
+        if (meta == null) {
+            return markedItem;
+        }
 
         meta.getPersistentDataContainer().set(GUI_MARKER, PersistentDataType.BYTE, (byte) 1);
-        item.setItemMeta(meta);
+        markedItem.setItemMeta(meta);
+        return markedItem;
     }
 
     /**

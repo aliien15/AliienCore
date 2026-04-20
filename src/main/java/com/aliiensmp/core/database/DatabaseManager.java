@@ -10,27 +10,51 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DatabaseManager {
 
-    private HikariDataSource dataSource;
+    private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class.getName());
+    private static final AtomicInteger THREAD_COUNTER = new AtomicInteger(1);
+    private static final int MAX_ASYNC_THREADS = 32;
+
+    private volatile HikariDataSource dataSource;
+    private volatile ExecutorService asyncExecutor;
 
     /**
      * Method to be passed from the database type used later on
      * @param config
      */
-    public void connect(HikariConfig config) {
-        // This initializes the pool based on the provided config
+    public synchronized void connect(HikariConfig config) {
+        disconnect();
+
+        if (config.getPoolName() == null) {
+            config.setPoolName("AliienCore-Pool-" + THREAD_COUNTER.getAndIncrement());
+        }
+
         this.dataSource = new HikariDataSource(config);
+        this.asyncExecutor = createExecutor(config.getMaximumPoolSize());
     }
 
     /**
      * Closes the connection with the database
      */
-    public void disconnect() {
-        if (dataSource != null && !dataSource.isClosed()) {
-            dataSource.close();
+    public synchronized void disconnect() {
+        ExecutorService executor = asyncExecutor;
+        asyncExecutor = null;
+        if (executor != null) {
+            executor.shutdown();
+        }
+
+        HikariDataSource currentDataSource = dataSource;
+        dataSource = null;
+        if (currentDataSource != null && !currentDataSource.isClosed()) {
+            currentDataSource.close();
         }
     }
 
@@ -39,7 +63,11 @@ public class DatabaseManager {
      * @throws SQLException
      */
     public Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
+        HikariDataSource currentDataSource = dataSource;
+        if (currentDataSource == null || currentDataSource.isClosed()) {
+            throw new SQLException("Database connection pool has not been initialized.");
+        }
+        return currentDataSource.getConnection();
     }
 
     /**
@@ -50,22 +78,25 @@ public class DatabaseManager {
      * @return A CompletableFuture returning true if successful, false if it failed.
      */
     public CompletableFuture<Boolean> executeAsync(String query, Object... params) {
+        ExecutorService executor = getAsyncExecutor();
+        if (executor == null) {
+            return CompletableFuture.completedFuture(false);
+        }
+
         return CompletableFuture.supplyAsync(() -> {
             try (Connection conn = getConnection();
                  PreparedStatement ps = conn.prepareStatement(query)) {
 
-                for (int i = 0; i < params.length; i++) {
-                    ps.setObject(i + 1, params[i]);
-                }
+                bindParameters(ps, params);
 
                 ps.executeUpdate();
                 return true;
 
             } catch (SQLException e) {
-                e.printStackTrace();
+                logFailure("update", query, e);
                 return false;
             }
-        });
+        }, executor);
     }
 
     /**
@@ -77,40 +108,47 @@ public class DatabaseManager {
      * @return A CompletableFuture containing the parsed data.
      */
     public <T> CompletableFuture<T> queryAsync(String query, Function<ResultSet, T> parser, Object... params) {
+        ExecutorService executor = getAsyncExecutor();
+        if (executor == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+
         return CompletableFuture.supplyAsync(() -> {
             try (Connection conn = getConnection();
                  PreparedStatement ps = conn.prepareStatement(query)) {
 
-                for (int i = 0; i < params.length; i++) {
-                    ps.setObject(i + 1, params[i]);
-                }
+                bindParameters(ps, params);
 
                 try (ResultSet rs = ps.executeQuery()) {
                     return parser.apply(rs);
                 }
 
-            } catch (SQLException e) {
-                e.printStackTrace();
+            } catch (SQLException | RuntimeException e) {
+                logFailure("query", query, e);
                 return null;
             }
-        });
+        }, executor);
     }
 
     /**
      * Initializes a local SQLite database connection.
      */
     public void connectSQLite(Plugin plugin, String fileName) {
-        // Ensure the plugin folder actually exists
-        // Probably not needed, but just to make sure
-        if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
+        if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs() && !plugin.getDataFolder().isDirectory()) {
+            throw new IllegalStateException("Unable to create plugin data folder: " + plugin.getDataFolder().getAbsolutePath());
+        }
 
-        File dbFile = new File(plugin.getDataFolder(), fileName + ".db");
+        String finalFileName = fileName.endsWith(".db") ? fileName : fileName + ".db";
+        File dbFile = new File(plugin.getDataFolder(), finalFileName);
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:sqlite:" + dbFile.getAbsolutePath());
-
         config.setMaximumPoolSize(1);
+        config.setMinimumIdle(1);
         config.setConnectionTestQuery("SELECT 1");
+        config.setConnectionTimeout(10_000L);
+        config.setValidationTimeout(5_000L);
+        config.setPoolName("AliienCore-SQLite");
 
         connect(config);
     }
@@ -126,17 +164,62 @@ public class DatabaseManager {
      * MySQL connection that allows full control over HikariCP optimizations
      */
     public void connectMySQL(String host, int port, String database, String username, String password, int maxPoolSize, int minIdle, long timeout, long maxLifetime) {
-
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database);
         config.setUsername(username);
         config.setPassword(password);
-
         config.setMaximumPoolSize(maxPoolSize);
-        config.setMinimumIdle(minIdle);
+        config.setMinimumIdle(Math.min(Math.max(1, minIdle), maxPoolSize));
         config.setConnectionTimeout(timeout);
+        config.setValidationTimeout(Math.min(timeout, 5_000L));
         config.setMaxLifetime(maxLifetime);
+        if (maxLifetime > 0L) {
+            long keepaliveTime = Math.min(300_000L, Math.max(30_000L, maxLifetime / 2));
+            if (keepaliveTime < maxLifetime) {
+                config.setKeepaliveTime(keepaliveTime);
+            }
+        }
+        config.setPoolName("AliienCore-MySQL");
+
+        config.addDataSourceProperty("cachePrepStmts", "true");
+        config.addDataSourceProperty("prepStmtCacheSize", "250");
+        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+        config.addDataSourceProperty("useServerPrepStmts", "true");
+        config.addDataSourceProperty("rewriteBatchedStatements", "true");
+        config.addDataSourceProperty("cacheResultSetMetadata", "true");
+        config.addDataSourceProperty("maintainTimeStats", "false");
+        config.addDataSourceProperty("tcpKeepAlive", "true");
+        config.addDataSourceProperty("useSSL", "false");
+        config.addDataSourceProperty("allowPublicKeyRetrieval", "true");
 
         connect(config);
+    }
+
+    private ExecutorService createExecutor(int maximumPoolSize) {
+        int threadCount = Math.max(1, Math.min(maximumPoolSize, MAX_ASYNC_THREADS));
+        return Executors.newFixedThreadPool(threadCount, runnable -> {
+            Thread thread = new Thread(runnable, "AliienCore-DB-" + THREAD_COUNTER.getAndIncrement());
+            thread.setDaemon(true);
+            return thread;
+        });
+    }
+
+    private ExecutorService getAsyncExecutor() {
+        ExecutorService executor = asyncExecutor;
+        if (executor == null || executor.isShutdown()) {
+            LOGGER.warning("DatabaseManager was used before a connection pool was initialized.");
+            return null;
+        }
+        return executor;
+    }
+
+    private void bindParameters(PreparedStatement statement, Object... params) throws SQLException {
+        for (int i = 0; i < params.length; i++) {
+            statement.setObject(i + 1, params[i]);
+        }
+    }
+
+    private void logFailure(String operation, String query, Exception exception) {
+        LOGGER.log(Level.WARNING, "Failed to execute database " + operation + ": " + query, exception);
     }
 }
