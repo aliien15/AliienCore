@@ -26,10 +26,6 @@
             <configuration>
               <relocations>
                 <relocation>
-                  <pattern>org.bstats</pattern>
-                  <shadedPattern>com.aliiensmp.core.bstats</shadedPattern>
-                </relocation>
-                <relocation>
                   <pattern>com.zaxxer.hikari</pattern>
                   <shadedPattern>com.aliiensmp.core.lib.hikari</shadedPattern>
                 </relocation>

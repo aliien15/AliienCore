@@ -2,7 +2,6 @@ package com.aliiensmp.core;
 
 import com.aliiensmp.core.database.DatabaseManager;
 import com.aliiensmp.core.menu.MenuListener;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
@@ -34,15 +33,6 @@ public final class AliienCore {
         }
 
         if (databaseManager == null) databaseManager = new DatabaseManager();
-    }
-
-    /**
-     * Enables bStats metrics for the plugin.
-     * @param plugin The JavaPlugin instance.
-     * @param serviceId The plugin ID provided by bStats.org.
-     */
-    public static Metrics enableMetrics(JavaPlugin plugin, int serviceId) {
-        return new Metrics(plugin, serviceId);
     }
 
     /**
