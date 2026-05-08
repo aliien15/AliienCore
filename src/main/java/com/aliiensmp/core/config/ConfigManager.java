@@ -10,6 +10,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * A universal utility for generating, loading, and auto-updating
@@ -50,11 +53,53 @@ public class ConfigManager {
 
         return YamlDocument.create(
                 configFile,
-                plugin.getResource(fileName),
+                Objects.requireNonNull(plugin.getResource(fileName)),
                 GENERAL_SETTINGS,
                 LOADER_SETTINGS,
                 DumperSettings.DEFAULT,
                 UPDATER_SETTINGS
         );
+    }
+
+    /**
+     * Binds a YamlDocument to an object's annotated fields.
+     *
+     * @param config the config file
+     * @param configInstance the config instance
+     */
+    public static void bindConfig(YamlDocument config, Object configInstance) {
+        boolean needsSave = false;
+
+        for (Field field : configInstance.getClass().getDeclaredFields()) {
+            if (!field.isAnnotationPresent(Key.class)) continue;
+
+            Key key = field.getAnnotation(Key.class);
+            String path = key.value();
+
+            try {
+                field.setAccessible(true);
+
+                if (config.contains(path)) {
+                    // If the file has the value, inject it into the field
+                    field.set(configInstance, config.get(path));
+                } else {
+                    // If the file is missing the path, grab the default value from Java and write it to config file
+                    config.set(path, field.get(configInstance));
+                    needsSave = true;
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (needsSave) {
+            CompletableFuture.runAsync(() -> {
+                try {
+                    config.save();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
     }
 }
