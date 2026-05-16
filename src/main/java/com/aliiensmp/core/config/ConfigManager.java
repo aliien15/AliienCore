@@ -34,16 +34,6 @@ public class ConfigManager {
     private ConfigManager() {
     }
 
-    /**
-     * Creates or loads a BoostedYAML configuration file.
-     * Automatically handles plugin data folder creation, default file extraction,
-     * and safe automatic version updating based on the "config-version" key.
-     *
-     * @param plugin   The plugin instance requesting the config.
-     * @param fileName The name of the file (e.g., "config.yml" or "gui.yml").
-     * @return The loaded YamlDocument.
-     * @throws IOException If the file cannot be read, created, or saved.
-     */
     public static YamlDocument loadConfig(JavaPlugin plugin, String fileName) throws IOException {
         File configFile = new File(plugin.getDataFolder(), fileName);
         File parent = configFile.getParentFile();
@@ -63,14 +53,23 @@ public class ConfigManager {
 
     /**
      * Binds a YamlDocument to an object's annotated fields.
+     * Safely handles both Class definitions (for static fields) and instantiated objects.
      *
      * @param config the config file
-     * @param configInstance the config instance
+     * @param configInstance the config instance (or Class object)
      */
     public static void bindConfig(YamlDocument config, Object configInstance) {
         boolean needsSave = false;
 
-        for (Field field : configInstance.getClass().getDeclaredFields()) {
+        // Determine the target class, even if a static Class object was passed.
+        Class<?> targetClass = (configInstance instanceof Class<?>)
+                ? (Class<?>) configInstance
+                : configInstance.getClass();
+
+        // If target is a static class, pass 'null' as the instance to the reflection methods.
+        Object targetInstance = (configInstance instanceof Class<?>) ? null : configInstance;
+
+        for (Field field : targetClass.getDeclaredFields()) {
             if (!field.isAnnotationPresent(Key.class)) continue;
 
             Key key = field.getAnnotation(Key.class);
@@ -80,11 +79,11 @@ public class ConfigManager {
                 field.setAccessible(true);
 
                 if (config.contains(path)) {
-                    // If the file has the value, inject it into the field
-                    field.set(configInstance, config.get(path));
+                    // Inject from file into Java
+                    field.set(targetInstance, config.get(path));
                 } else {
-                    // If the file is missing the path, grab the default value from Java and write it to config file
-                    config.set(path, field.get(configInstance));
+                    // Missing in file: extract Java default and save to file
+                    config.set(path, field.get(targetInstance));
                     needsSave = true;
                 }
             } catch (IllegalAccessException e) {
