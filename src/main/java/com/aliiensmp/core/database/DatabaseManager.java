@@ -154,6 +154,46 @@ public class DatabaseManager {
     }
 
     /**
+     * Initializes a local file-based H2 database with default network optimizations.
+     */
+    public void connectH2(Plugin plugin, String fileName) {
+        connectH2(plugin, fileName, 10, 2, 10000L, 1800000L);
+    }
+
+    /**
+     * Initializes a local file-based H2 databasea.
+     */
+    public void connectH2(Plugin plugin, String fileName, int maxPoolSize, int minIdle, long timeout, long maxLifetime) {
+        if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs() && !plugin.getDataFolder().isDirectory()) {
+            throw new IllegalStateException("Unable to create plugin data folder: " + plugin.getDataFolder().getAbsolutePath());
+        }
+
+        String cleanName = fileName.endsWith(".db") ? fileName.substring(0, fileName.lastIndexOf('.')) : fileName;
+        File dbFile = new File(plugin.getDataFolder(), cleanName);
+
+        HikariConfig config = new HikariConfig();
+
+        // AUTO_SERVER=TRUE enables automatic embedded server mode (safe multi-process connections)
+        config.setJdbcUrl("jdbc:h2:file:" + dbFile.getAbsolutePath() + ";AUTO_SERVER=TRUE;MODE=MySQL");
+        config.setDriverClassName("org.h2.Driver");
+        config.setMaximumPoolSize(maxPoolSize);
+        config.setMinimumIdle(Math.min(Math.max(1, minIdle), maxPoolSize));
+        config.setConnectionTimeout(timeout);
+        config.setValidationTimeout(Math.min(timeout, 5_000L));
+        config.setMaxLifetime(maxLifetime);
+
+        if (maxLifetime > 0L) {
+            long keepaliveTime = Math.min(300_000L, Math.max(30_000L, maxLifetime / 2));
+            if (keepaliveTime < maxLifetime) {
+                config.setKeepaliveTime(keepaliveTime);
+            }
+        }
+        config.setPoolName("AliienCore-H2");
+
+        connect(config);
+    }
+
+    /**
      * Standard MySQL connection with my default network optimizations
      */
     public void connectMySQL(String host, int port, String database, String username, String password) {
