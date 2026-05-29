@@ -14,7 +14,7 @@ To use AliienCore in your premium plugins, you need to compile it locally and sh
 ### 1. Installation
 Clone the repository and install it to your local Maven repository:
 ```bash
-git clone https://github.com/aliien15/AliienCore
+git clone [https://github.com/aliien15/AliienCore](https://github.com/aliien15/AliienCore)
 cd AliienCore # (or whatever directory you want to have it in)
 mvn clean install
 ```
@@ -47,6 +47,7 @@ public void onEnable() {
 * **GUIs (Menu System):** Create robust menus using `AliienGUI`. Features an internal, raw-slot-based master lock that handles all click-routing, shift-click blocking, dupe-protection, and zero need for manual `InventoryClickEvent` listeners.
 * **ItemBuilder:** A chainable builder for creating standard and custom items, featuring native support for PersistentDataContainers (PDC), custom model data, and glowing effects. Seamlessly integrates with GUIs via `.buildClickable()`.
 * **Database Manager:** Centralized database handling using HikariCP for connection pooling. Supports SQLite (with forced safe file-locking), MySQL, and **H2** (in-memory or file-based). All reads/writes are completely asynchronous and protected with `PreparedStatement` placeholders.
+* **Duration & Time Utilities:** Parse strings like `1d2h30m` cleanly into Java `Duration` objects via regex. Format durations back into highly customizable formats (`SHORT`, `LONG`, `CLOCK`), and safely convert durations or strings directly into server ticks for Folia schedulers.
 * **ColorUtils:** A bulletproof text formatter that flawlessly bridges modern Adventure `MiniMessage` tags (`<red>`) with legacy ampersand codes (`&c`) and hex codes (`&#ffffff`). It globally injects `<!italic>` to override default vanilla text behavior.
 * **MessageUtils:** Cleanly send messages with native support for vararg placeholder replacements and MiniMessage parsing.
 * **SoundUtils:** Parse config strings (e.g., `SOUND_KEY:VOLUME:PITCH`) into `CustomSound` records. Natively supports both Bukkit Vanilla Enums and Custom Resource Pack strings, handling all null-safety and playback routing.
@@ -104,6 +105,29 @@ AliienCore.getDatabase().queryAsync(selectQuery, rs -> {
 });
 ```
 
+### Duration & Time Utilities
+Parse complex string formats down to Java `Duration` objects, format remaining times cleanly, or calculate exact server ticks for Folia schedulers.
+
+```java
+import com.aliiensmp.core.utils.DurationUtils;
+import java.time.Duration;
+
+// Parse input strings directly into standard Java Durations
+Duration tempMuteTime = DurationUtils.parse("2d12h30m");
+
+// Format durations into customizable human-readable text layouts
+String shortFormat = DurationUtils.format(tempMuteTime, DurationUtils.Style.SHORT); // Output: "2d 12h 30m"
+String longFormat  = DurationUtils.format(tempMuteTime, DurationUtils.Style.LONG);  // Output: "2 Days 12 Hours 30 Minutes"
+
+// Format for actionbars, bossbars, or scoreboards
+Duration timer = Duration.ofMinutes(4).plusSeconds(12);
+String clockFormat = DurationUtils.format(timer, DurationUtils.Style.CLOCK);        // Output: "04:12"
+
+// Safely convert durations or parse strings straight to server ticks (20 ticks = 1 second)
+long entityDelayTicks = DurationUtils.toTicks(Duration.ofMinutes(5));
+long schedulerTicks   = DurationUtils.toTicks("1h30m");
+```
+
 ### Creating Interactive GUIs
 Zero Bukkit boilerplate. No manual listeners needed.
 
@@ -136,3 +160,4 @@ public void openMenu(Player player) {
 
 ## 🤝 Contributing
 Pull requests are welcome! If you have a highly reusable utility class that you think belongs in the core library, feel free to open a PR. Ensure that any contributions adhere to the core philosophy: strict async compliance, Folia compatibility, and zero Bukkit boilerplate.
+```
