@@ -59,7 +59,14 @@ public final class ColorUtils {
         return List.copyOf(coloredLore);
     }
 
-    private static String translateLegacyFormatting(String text) {
+    /**
+     * Converts old color formatting (such as &f or &#ffffff) to the «
+     * MiniMessages format (<white></white> or <#ffffff></#ffffff>)
+     *
+     * @param text The text to be converted
+     * @return The text converted, or the originak text is there is nothing to convert
+     */
+    public static String translateLegacyFormatting(String text) {
         if (text.indexOf('&') < 0 && text.indexOf(SECTION_CHAR) < 0) {
             return text;
         }
