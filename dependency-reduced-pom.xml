@@ -33,14 +33,6 @@
                   <pattern>dev.dejvokep.boostedyaml</pattern>
                   <shadedPattern>com.aliiensmp.core.lib.boostedyaml</shadedPattern>
                 </relocation>
-                <relocation>
-                  <pattern>com.mysql</pattern>
-                  <shadedPattern>com.aliiensmp.core.lib.mysql</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.sqlite</pattern>
-                  <shadedPattern>com.aliiensmp.core.lib.sqlite</shadedPattern>
-                </relocation>
               </relocations>
             </configuration>
           </execution>
