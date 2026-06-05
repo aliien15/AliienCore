@@ -129,7 +129,7 @@ public class DiscordWebhook {
                 JsonObject payload = new JsonObject();
                 payload.add("embeds", embedsArray);
 
-                // Build the HTTP POST request (Updated User-Agent to AliienCore!)
+                // Build the HTTP POST request
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(this.webhookUrl))
                         .header("Content-Type", "application/json")
