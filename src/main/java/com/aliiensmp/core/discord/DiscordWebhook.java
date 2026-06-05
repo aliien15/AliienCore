@@ -44,6 +44,17 @@ public class DiscordWebhook {
     }
 
     /**
+     * Sets the description of the embed
+     *
+     * @param description The text to display as the description
+     * @return This builder instance for chaining.
+     */
+    public DiscordWebhook setDescription(String description) {
+        if (description != null) this.embed.addProperty("description", description);
+        return this;
+    }
+
+    /**
      * Sets the embed color using a raw decimal integer.
      *
      * @param hexColor The integer representation of a hex color (e.g., 0xFF0000).
