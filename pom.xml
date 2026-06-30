@@ -57,6 +57,10 @@
                                     <pattern>dev.dejvokep.boostedyaml</pattern>
                                     <shadedPattern>com.aliiensmp.core.lib.boostedyaml</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.mariadb.jdbc</pattern>
+                                    <shadedPattern>com.aliiensmp.core.lib.mariadb</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
@@ -88,6 +92,12 @@
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
             <version>5.1.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mariadb.jdbc</groupId>
+            <artifactId>mariadb-java-client</artifactId>
+            <version>3.5.9</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

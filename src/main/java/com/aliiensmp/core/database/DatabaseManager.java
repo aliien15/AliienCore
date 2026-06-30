@@ -235,6 +235,44 @@ public class DatabaseManager {
         connect(config);
     }
 
+    /**
+     * Standard MariaDB connection with my default network optimizations
+     */
+    public void connectMariaDB(String host, int port, String database, String username, String password) {
+        connectMariaDB(host, port, database, username, password, 10, 10, 10000, 1800000);
+    }
+
+    /**
+     * MariaDB connection that allows full control over HikariCP optimizations
+     */
+    public void connectMariaDB(String host, int port, String database, String username, String password, int maxPoolSize, int minIdle, long timeout, long maxLifetime) {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl("jdbc:mariadb://" + host + ":" + port + "/" + database);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setMaximumPoolSize(maxPoolSize);
+        config.setMinimumIdle(Math.min(Math.max(1, minIdle), maxPoolSize));
+        config.setConnectionTimeout(timeout);
+        config.setValidationTimeout(Math.min(timeout, 5_000L));
+        config.setMaxLifetime(maxLifetime);
+        if (maxLifetime > 0L) {
+            long keepaliveTime = Math.min(300_000L, Math.max(30_000L, maxLifetime / 2));
+            if (keepaliveTime < maxLifetime) {
+                config.setKeepaliveTime(keepaliveTime);
+            }
+        }
+        config.setPoolName("AliienCore-MariaDB");
+
+        config.addDataSourceProperty("useServerPrepStmts", "true");
+        config.addDataSourceProperty("cacheResultSetMetadata", "true");
+        config.addDataSourceProperty("maintainTimeStats", "false");
+        config.addDataSourceProperty("tcpKeepAlive", "true");
+        config.addDataSourceProperty("useSSL", "false");
+        config.addDataSourceProperty("allowPublicKeyRetrieval", "true");
+
+        connect(config);
+    }
+
     private ExecutorService createExecutor(int maximumPoolSize) {
         int threadCount = Math.max(1, Math.min(maximumPoolSize, MAX_ASYNC_THREADS));
         return Executors.newFixedThreadPool(threadCount, runnable -> {
