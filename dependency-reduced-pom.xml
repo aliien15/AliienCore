@@ -33,6 +33,10 @@
                   <pattern>dev.dejvokep.boostedyaml</pattern>
                   <shadedPattern>com.aliiensmp.core.lib.boostedyaml</shadedPattern>
                 </relocation>
+                <relocation>
+                  <pattern>org.mariadb.jdbc</pattern>
+                  <shadedPattern>com.aliiensmp.core.lib.mariadb</shadedPattern>
+                </relocation>
               </relocations>
             </configuration>
           </execution>

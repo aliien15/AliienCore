@@ -20,6 +20,7 @@ public class DiscordWebhook {
     private final String webhookUrl;
     private final JsonObject embed;
     private final JsonArray fieldsArray;
+    private String content = null;
 
     /**
      * Initializes a new Discord Webhook payload.
@@ -87,6 +88,39 @@ public class DiscordWebhook {
     }
 
     /**
+     * Sets the top-level message content of the webhook payload.
+     * <p>
+     * Unlike embed fields, text set here is displayed outside the embed card
+     * and is capable of triggering standard Discord push notifications or mentions.
+     *
+     * @param content The raw text message to send.
+     * @return This builder instance for chaining.
+     */
+    public DiscordWebhook setContent(String content) {
+        return setContent(content, false);
+    }
+
+    /**
+     * Sets the top-level message content of the webhook payload, with optional
+     * automatic Discord role mention formatting.
+     * <p>
+     * When {@code isRoleToPing} is set to {@code true}, the input string is
+     * automatically wrapped in Discord's role mention syntax ({@code <@&ID>}).
+     * This allows server owners to supply raw role IDs directly from configuration
+     * files without manually adding the mention tag.
+     *
+     * @param content The raw text message or Discord Role ID to send.
+     * @param isRoleToPing If {@code true}, wraps the input string in Discord's role mention format ({@code <@&content>}).
+     * @return This builder instance for chaining.
+     */
+    public DiscordWebhook setContent(String content, boolean isRoleToPing) {
+        if (content != null && !content.isEmpty())
+            this.content = isRoleToPing ? "<@&" + content + ">" : content;
+
+        return this;
+    }
+
+    /**
      * Adds a custom data field to the Discord embed.
      * Fields are perfect for displaying structured key-value information (e.g., "Staff Member" -> "AdminName").
      *
@@ -128,6 +162,7 @@ public class DiscordWebhook {
 
                 JsonObject payload = new JsonObject();
                 payload.add("embeds", embedsArray);
+                if (this.content != null) payload.addProperty("content", this.content);
 
                 // Build the HTTP POST request
                 HttpRequest request = HttpRequest.newBuilder()
