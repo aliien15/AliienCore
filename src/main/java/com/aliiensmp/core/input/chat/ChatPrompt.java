@@ -61,4 +61,12 @@ public class ChatPrompt {
             prompt.onCancel().run();
         });
     }
+
+    /**
+     * @param uuid the player's UUID to check
+     * @return true if the plugin is currently waiting for a chat input from this player
+     */
+    public static boolean hasPrompt(UUID uuid) {
+        return ACTIVE_PROMPTS.containsKey(uuid);
+    }
 }
