@@ -29,13 +29,16 @@ Then, add it as a dependency in your plugin's `pom.xml` and shade it:
 ```
 
 ### 2. Initialization
-All plugins utilizing this library **must** initialize the core in their `onEnable()` method before using any features:
+All plugins utilizing this library **must** initialize the core in their `onEnable()` method before using any features. You can initialize everything by default, or selectively toggle features to avoid registering unnecessary events:
 
 ```java
 @Override
 public void onEnable() {
-    // Initialize the core library
+    // Option A: Initialize all core features (Menus, Database, Chat Prompts)
     AliienCore.init(this);
+
+    // Option B: Selectively initialize (enableMenus, enableDatabase, enableChatPrompts)
+    AliienCore.init(this, true, false, true); 
 }
 ```
 
@@ -43,7 +46,9 @@ public void onEnable() {
 
 ## ✨ Features & Modules
 
-* **Strict Async & Folia Compatibility:** Built with absolute Folia compatibility in mind. Global and entity tasks are handled natively via schedulers without `BukkitRunnable`, and all File I/O and database operations are strictly non-blocking.
+* **Strict Async & Folia Compatibility:** Built with absolute Folia compatibility in mind. Global and entity tasks are handled natively via schedulers without `BukkitRunnable`, and all File I/O and database operations are strictly non-blocking. Use the global `AliienCore.IS_FOLIA` constant for universal platform checks.
+* **Initialization:** Overloaded initialization allows selective enabling of features (menus, databases, chat prompts) to optimize event registry per-plugin.
+* **Chat Prompts:** A 100% Folia-safe system to capture asynchronous player text input. Automatically manages timeout `ScheduledTask`s, cancels previous prompts to prevent memory leaks, and handles chat, command, and quit events cleanly without manual listeners.
 * **GUIs (Menu System):** Create robust menus using `AliienGUI`. Features an internal, raw-slot-based master lock that handles all click-routing, shift-click blocking, dupe-protection, and zero need for manual `InventoryClickEvent` listeners.
 * **ItemBuilder:** A chainable builder for creating standard and custom items, featuring native support for PersistentDataContainers (PDC), custom model data, and glowing effects. Seamlessly integrates with GUIs via `.buildClickable()`.
 * **Database Manager:** Centralized database handling using HikariCP for connection pooling. Supports SQLite (with forced safe file-locking), MySQL, MariaDB, and H2 (in-memory or file-based). All reads/writes are completely asynchronous and protected with `PreparedStatement` placeholders.
@@ -58,6 +63,29 @@ public void onEnable() {
 ---
 
 ## 💻 Code Examples
+
+### Chat Prompts (Async Text Input)
+Capture player input safely without writing manual chat listeners. Fully Folia-safe and automatically handles timeouts, cancellations, and overlapping prompts.
+
+```java
+import com.aliiensmp.core.utils.ChatPrompt;
+
+public void promptPlayer(Player player) {
+    MessageUtils.send(player, Settings.PREFIX, "Type your reason in chat, or type 'cancel' to abort.");
+    
+    // Starts a prompt with a 1200 tick (60 second) timeout
+    ChatPrompt.startPrompt(player, 1200L, 
+        input -> {
+            // Success callback (Executes off the main thread from AsyncChatEvent)
+            MessageUtils.send(player, Settings.PREFIX, "You typed: " + input);
+        }, 
+        () -> {
+            // Cancel/Timeout callback
+            MessageUtils.send(player, Settings.PREFIX, "<red>Action cancelled or timed out.");
+        }
+    );
+}
+```
 
 ### Configuration Binding
 Easily map config values directly to public static variables to avoid passing instances around.
@@ -160,4 +188,3 @@ public void openMenu(Player player) {
 
 ## 🤝 Contributing
 Pull requests are welcome! If you have a highly reusable utility class that you think belongs in the core library, feel free to open a PR. Ensure that any contributions adhere to the core philosophy: strict async compliance, Folia compatibility, and zero Bukkit boilerplate.
-```
