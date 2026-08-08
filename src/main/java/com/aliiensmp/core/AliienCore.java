@@ -18,9 +18,6 @@ public final class AliienCore {
     private static DatabaseManager databaseManager;
     private static boolean initialized;
 
-    private AliienCore() {
-    }
-
     /**
      * Initializes the AliienCore framework with all features enabled.
      * Run this in your plugin's onEnable() method.
