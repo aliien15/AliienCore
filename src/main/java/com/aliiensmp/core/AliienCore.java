@@ -1,6 +1,8 @@
 package com.aliiensmp.core;
 
 import com.aliiensmp.core.database.DatabaseManager;
+import com.aliiensmp.core.input.chat.ChatPrompt;
+import com.aliiensmp.core.input.chat.ChatPromptListeners;
 import com.aliiensmp.core.menu.MenuListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,19 +22,43 @@ public final class AliienCore {
     }
 
     /**
-     * Initializes the AliienCore framework for a specific plugin.
+     * Initializes the AliienCore framework with all features enabled.
      * Run this in your plugin's onEnable() method.
+     *
      * @param plugin The instance of the plugin using the library.
      */
     public static synchronized void init(JavaPlugin plugin) {
+        init(plugin, true, true, true);
+    }
+
+    /**
+     * Initializes the AliienCore framework with specific feature toggles.
+     *
+     * @param plugin The instance of the plugin using the library.
+     * @param enableMenus Whether to register the MenuListener for AliienGUI.
+     * @param enableDatabase Whether to initialize the DatabaseManager pool.
+     * @param enableChatPrompts Whether to register the ChatPrompt system listeners.
+     */
+    public static synchronized void init(JavaPlugin plugin, boolean enableMenus, boolean enableDatabase, boolean enableChatPrompts) {
         Objects.requireNonNull(plugin, "plugin");
 
         if (!initialized) {
-            plugin.getServer().getPluginManager().registerEvents(new MenuListener(plugin), plugin);
+
+            if (enableMenus) {
+                plugin.getServer().getPluginManager().registerEvents(new MenuListener(plugin), plugin);
+            }
+
+            if (enableChatPrompts) {
+                ChatPrompt.init(plugin);
+                plugin.getServer().getPluginManager().registerEvents(new ChatPromptListeners(), plugin);
+            }
+
             initialized = true;
         }
 
-        if (databaseManager == null) databaseManager = new DatabaseManager();
+        if (enableDatabase && databaseManager == null) {
+            databaseManager = new DatabaseManager();
+        }
     }
 
     /**
