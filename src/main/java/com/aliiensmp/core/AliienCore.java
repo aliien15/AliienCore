@@ -18,6 +18,19 @@ public final class AliienCore {
     private static DatabaseManager databaseManager;
     private static boolean initialized;
 
+    public static final boolean IS_FOLIA;
+
+    static {
+        boolean folia = false;
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            folia = true;
+        } catch (ClassNotFoundException ignored) {
+            // Empty, which means that we aren't on folia
+        }
+        IS_FOLIA = folia;
+    }
+
     /**
      * Initializes the AliienCore framework with all features enabled.
      * Run this in your plugin's onEnable() method.
