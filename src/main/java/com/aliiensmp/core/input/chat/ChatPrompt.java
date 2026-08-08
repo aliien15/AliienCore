@@ -34,7 +34,7 @@ public class ChatPrompt {
      * @param onCancel what to do if the input gets canceled (the time runs out, the player leaves, etc)
      * @requires params should not be null
      */
-    public void startInput(Player player, long waitingTime, Consumer<String> input, Runnable onCancel) {
+    public static void startInput(Player player, long waitingTime, Consumer<String> input, Runnable onCancel) {
         UUID playerUuid = player.getUniqueId();
         cancelPrompt(playerUuid);
 
