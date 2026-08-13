@@ -4,6 +4,7 @@ import com.aliiensmp.core.database.DatabaseManager;
 import com.aliiensmp.core.input.chat.ChatPrompt;
 import com.aliiensmp.core.input.chat.ChatPromptListeners;
 import com.aliiensmp.core.menu.MenuListener;
+import com.aliiensmp.core.utils.DebugUtils;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
@@ -69,6 +70,8 @@ public final class AliienCore {
         if (enableDatabase && databaseManager == null) {
             databaseManager = new DatabaseManager();
         }
+
+        DebugUtils.setPlugin(plugin);
     }
 
     /**

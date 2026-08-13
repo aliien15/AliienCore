@@ -59,6 +59,7 @@ public void onEnable() {
 * **Configs:** Generate and manage advanced configuration files easily with native `BoostedYAML` integration. Bind static variables directly to config paths using the `@Key` annotation to instantly map raw values.
 * **UpdateChecker:** An asynchronous, generic GitHub Gist update checker to easily notify admins of new plugin releases.
 * **Player Utilities:** Safe inventory management (drop-on-full).
+* **Debug Utilities:** Use our DebugUtils class to automatically manage a debug mode in your plugin, but setting up console messages with different logging levels and only sending them if intended.
 
 ---
 

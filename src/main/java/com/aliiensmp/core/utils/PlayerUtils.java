@@ -6,9 +6,6 @@ import java.util.Map;
 
 public class PlayerUtils {
 
-    private PlayerUtils() {
-    }
-
     /**
      * Safely gives an item to a player. If their inventory is full,
      * the item is safely dropped at their current location.
