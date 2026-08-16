@@ -34,6 +34,16 @@ public class DebugUtils {
     }
 
     /**
+     * Toggles the debug mode without knowing the currrent state of the toggle (if it is already on or not)
+     *
+     * @return true if it gets toggled on, false if it gets disabled
+     */
+    public static boolean toggleDebug() {
+        isEnabled = !isEnabled;
+        return isEnabled;
+    }
+
+    /**
      * Send a debug message if the debug mode is enabled with a "Level.INFO" loggging Level
      *
      * @param message the message that will be sent
