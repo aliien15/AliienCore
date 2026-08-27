@@ -15,6 +15,18 @@ public record CustomSound(String soundKey, @Nullable Sound vanillaSound, float v
      * Automatically routes to vanilla or custom sound based on availability.
      *
      * @param player The player who will hear the sound.
+     * @param isEnabled A setting value to decide whether to actually play the sound or not
+     */
+    public void play(Player player, boolean isEnabled) {
+        if (isEnabled)
+            play(player);
+    }
+
+    /**
+     * Plays this specific sound to the designated player.
+     * Automatically routes to vanilla or custom sound based on availability.
+     *
+     * @param player The player who will hear the sound.
      */
     public void play(Player player) {
         if (player == null) return;
