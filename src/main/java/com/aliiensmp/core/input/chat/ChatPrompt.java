@@ -3,6 +3,7 @@ package com.aliiensmp.core.input.chat;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Map;
 import java.util.Optional;
@@ -68,5 +69,27 @@ public class ChatPrompt {
      */
     public static boolean hasPrompt(UUID uuid) {
         return ACTIVE_PROMPTS.containsKey(uuid);
+    }
+
+    /**
+     * Shuts down chat prompts
+     * <p>
+     * <b>INTERNAL USE ONLY:</b> Called by {@link AliienCore#shutdown()}.
+     * Plugin code should not call this directly.
+     */
+    @ApiStatus.Internal
+    public static void shutdown() {
+        ACTIVE_PROMPTS.forEach((uuid, prompt) -> {
+            try {
+                if (prompt.timeoutTask != null) {
+                    prompt.timeoutTask.cancel();
+                }
+            } catch (RuntimeException e) {
+                // Plugin is already shut down
+            }
+        });
+
+        ACTIVE_PROMPTS.clear();
+        plugin = null;
     }
 }

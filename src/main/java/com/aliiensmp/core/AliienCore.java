@@ -74,6 +74,18 @@ public final class AliienCore {
         DebugUtils.setPlugin(plugin);
     }
 
+    public static synchronized void shutdown() {
+        if (databaseManager != null) {
+            databaseManager.disconnect();
+            databaseManager = null;
+        }
+
+        ChatPrompt.shutdown();
+        DebugUtils.shutdown();
+
+        initialized = false;
+    }
+
     /**
      * @return the global DatabaseManager instance.
      */

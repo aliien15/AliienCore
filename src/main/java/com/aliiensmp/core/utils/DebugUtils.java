@@ -13,8 +13,8 @@ public class DebugUtils {
     /**
      * Sets the plugin instance to send out the debug messages to the console
      * <p>
-     * <b>INTERNAL USE ONLY:</b> This is automatically called by AliienCore.init().
-     * Do not call this manually in your plugins.
+     * <b>INTERNAL USE ONLY:</b> Called by {@link AliienCore#init()}.
+     * Plugin code should not call this directly.
      *
      * @param javaPlugin the plugin instance
      * @requires {@code javaPlugin != null}
@@ -69,6 +69,17 @@ public class DebugUtils {
 
         String finalMessage = applyPlaceholders(message, placeholders);
         plugin.getLogger().log(loggingLevel, finalMessage);
+    }
+
+    /**
+     * Shuts down debug utils
+     * <p>
+     * <b>INTERNAL USE ONLY:</b> Called by {@link AliienCore#shutdown()}.
+     * Plugin code should not call this directly.
+     */
+    @ApiStatus.Internal
+    public static void shutdown() {
+        plugin = null;
     }
 
     /**
