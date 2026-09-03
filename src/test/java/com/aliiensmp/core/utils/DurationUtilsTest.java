@@ -41,6 +41,13 @@ class DurationUtilsTest {
         assertEquals(expectedTicks, DurationUtils.toTicks(randomDuration));
     }
 
+    @Test
+    void clockStyleKeepsZeroPlaceholdersAfterLargestUnit() {
+        assertEquals("04:12", DurationUtils.format(Duration.ofMinutes(4).plusSeconds(12), DurationUtils.Style.CLOCK));
+        assertEquals("02:30:00", DurationUtils.format(Duration.ofHours(2).plusMinutes(30), DurationUtils.Style.CLOCK));
+        assertEquals("02:00:30:00", DurationUtils.format(Duration.ofDays(2).plusMinutes(30), DurationUtils.Style.CLOCK));
+    }
+
     // Testing up to 99 hours
     @Property
     void clockStyleAlwaysFollowsFormat(@ForAll @Positive @LongRange(max = 359999L) long seconds) {

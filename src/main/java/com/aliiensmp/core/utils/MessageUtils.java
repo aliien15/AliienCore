@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.time.Duration;
+import java.util.function.Predicate;
 
 /**
  * Universal dispatcher for sending formatted messages, action bars, and titles.
@@ -39,35 +40,42 @@ public final class MessageUtils {
         if (message == null || message.isEmpty()) return;
 
         String finalMessage = applyPlaceholders(message, placeholders);
-        String fullMessage = (prefix != null ? prefix : "") + finalMessage;
-
-        // Apply PlaceholderAPI if the sender is a Player and PAPI is installed
-        if (sender instanceof Player player) {
-            fullMessage = applyPAPI(player, fullMessage);
-        }
-
-        Component component = ColorUtils.color(fullMessage);
-        sender.sendMessage(component);
+        sendResolved(sender, prefix, finalMessage);
     }
 
     /**
      * Broadcasts a fully formatted message to all online players and the console.
      * Utilizes the existing send method to ensure PAPI placeholders are parsed per-player.
      *
-     * @param prefix       The plugin's prefix (can be empty or null).
-     * @param message      The raw message string.
+     * @param prefix The plugin's prefix (can be empty or null).
+     * @param message The raw message string.
      * @param placeholders Local placeholder pairs (e.g., "%event%", "boss_fight").
      */
     public static void broadcast(String prefix, String message, String... placeholders) {
+        broadcast(prefix, message, player -> true, placeholders);
+    }
+
+    /**
+     * Broadcasts a fully formatted message certain online players and the console.
+     * Utilizes the existing send method to ensure PAPI placeholders are parsed per-player.
+     *
+     * @param prefix The plugin's prefix (can be empty or null).
+     * @param message The raw message string.
+     * @param filter a lambda to filter out players who shouldn't get this message.
+     * @param placeholders Local placeholder pairs (e.g., "%event%", "boss_fight").
+     * @ensures if {@code filter == null} it is handled as a true value, meaning it will target all players and won't throw a {@link NullPointerException}
+     */
+    public static void broadcast(String prefix, String message, Predicate<Player> filter, String... placeholders) {
         if (message == null || message.isEmpty()) return;
 
-        // Send to all online players
-        Bukkit.getOnlinePlayers().forEach(player ->
-                send(player, prefix, message, placeholders)
-        );
+        Predicate<Player> playerFilter = filter != null ? filter : player -> true;
+        String finalMessage = applyPlaceholders(message, placeholders);
 
-        // Send to console
-        send(Bukkit.getConsoleSender(), prefix, message, placeholders);
+        Bukkit.getOnlinePlayers().stream()
+                .filter(playerFilter)
+                .forEach(player -> sendResolved(player, prefix, finalMessage));
+
+        sendResolved(Bukkit.getConsoleSender(), prefix, finalMessage);
     }
 
     /**
@@ -118,6 +126,18 @@ public final class MessageUtils {
             }
         }
         return result;
+    }
+
+    private static void sendResolved(CommandSender sender, String prefix, String message) {
+        String fullMessage = (prefix != null ? prefix : "") + message;
+
+        // Apply PlaceholderAPI if the sender is a Player and PAPI is installed
+        if (sender instanceof Player player) {
+            fullMessage = applyPAPI(player, fullMessage);
+        }
+
+        Component component = ColorUtils.color(fullMessage);
+        sender.sendMessage(component);
     }
 
     /**

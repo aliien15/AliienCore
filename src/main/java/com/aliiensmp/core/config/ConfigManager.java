@@ -11,8 +11,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A universal utility for generating, loading, and auto-updating
@@ -30,10 +34,20 @@ public class ConfigManager {
             .setKeepAll(true)
             .setVersioning(new BasicVersioning("config-version"))
             .build();
+    private static final Map<Class<?>, List<BoundField>> BOUND_FIELDS_CACHE = new ConcurrentHashMap<>();
 
     private ConfigManager() {
     }
 
+    /**
+     * Loads or creates a .yml config file
+     *
+     * @param plugin The plugin instance
+     * @param fileName the name of the file
+     * @return The .yml file objects
+     * @requires {@code fileName != null} and has to include the {@code .yml} extension at the end
+     * @throws IOException If it fails to create a directory to the file if it didn't exist already
+     */
     public static YamlDocument loadConfig(JavaPlugin plugin, String fileName) throws IOException {
         File configFile = new File(plugin.getDataFolder(), fileName);
         File parent = configFile.getParentFile();
@@ -69,15 +83,11 @@ public class ConfigManager {
         // If target is a static class, pass 'null' as the instance to the reflection methods.
         Object targetInstance = (configInstance instanceof Class<?>) ? null : configInstance;
 
-        for (Field field : targetClass.getDeclaredFields()) {
-            if (!field.isAnnotationPresent(Key.class)) continue;
-
-            Key key = field.getAnnotation(Key.class);
-            String path = key.value();
+        for (BoundField boundField : getBoundFields(targetClass)) {
+            Field field = boundField.field();
+            String path = boundField.path();
 
             try {
-                field.setAccessible(true);
-
                 if (config.contains(path)) {
                     // Inject from file into Java
                     field.set(targetInstance, config.get(path));
@@ -100,5 +110,26 @@ public class ConfigManager {
                 }
             });
         }
+    }
+
+    private static List<BoundField> getBoundFields(Class<?> targetClass) {
+        return BOUND_FIELDS_CACHE.computeIfAbsent(targetClass, ConfigManager::scanBoundFields);
+    }
+
+    private static List<BoundField> scanBoundFields(Class<?> targetClass) {
+        List<BoundField> boundFields = new ArrayList<>();
+
+        for (Field field : targetClass.getDeclaredFields()) {
+            Key key = field.getAnnotation(Key.class);
+            if (key == null) continue;
+
+            field.setAccessible(true);
+            boundFields.add(new BoundField(field, key.value()));
+        }
+
+        return List.copyOf(boundFields);
+    }
+
+    private record BoundField(Field field, String path) {
     }
 }

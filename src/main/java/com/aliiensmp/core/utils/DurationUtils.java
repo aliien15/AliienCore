@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 public class DurationUtils {
 
     private static final Pattern DURATION_PATTERN = Pattern.compile("(\\d+)([dhms])");
+    private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
     /**
      * Converts a String input of a time (such as, for example, "3d 12h 7m 4s") into a Duration object
@@ -20,7 +21,7 @@ public class DurationUtils {
         }
 
         // Clean up the input string (lowercase and remove spaces)
-        String cleanInput = input.toLowerCase().replaceAll("\\s+", "");
+        String cleanInput = WHITESPACE_PATTERN.matcher(input.toLowerCase()).replaceAll("");
         Matcher matcher = DURATION_PATTERN.matcher(cleanInput);
 
         Duration totalDuration = Duration.ZERO;
@@ -49,7 +50,7 @@ public class DurationUtils {
      * Examples with 2 hours and 30 minutes:
      * SHORT - 2h 30m
      * LONG - 2 Hours 30 Minutes
-     * CLOCK - 02:30
+     * CLOCK - 02:30:00
      */
     public enum Style {
         SHORT, LONG, CLOCK
@@ -100,10 +101,7 @@ public class DurationUtils {
                 if (seconds > 0) builder.append(seconds).append(seconds == 1 ? " Second " : " Seconds ");
             }
             case CLOCK -> {
-                if (days > 0) builder.append(clockTimeConvert(days, String.valueOf(builder)));
-                if (hours > 0) builder.append(clockTimeConvert(hours, String.valueOf(builder)));
-                if (minutes > 0) builder.append(clockTimeConvert(minutes, String.valueOf(builder)));
-                if (seconds > 0) builder.append(clockTimeConvert(seconds, String.valueOf(builder)));
+                appendClock(builder, days, hours, minutes, seconds);
             }
         }
 
@@ -111,21 +109,46 @@ public class DurationUtils {
     }
 
     /**
-     * Convert a time into a string that can be used under the {@code CLOCK} format
+     * Appends every meaningful clock unit, keeping zero placeholders after the largest unit.
+     */
+    private static void appendClock(StringBuilder builder, long days, int hours, int minutes, int seconds) {
+        if (days > 0) {
+            appendClockUnit(builder, days);
+            appendClockUnit(builder, hours);
+            appendClockUnit(builder, minutes);
+            appendClockUnit(builder, seconds);
+            return;
+        }
+
+        if (hours > 0) {
+            appendClockUnit(builder, hours);
+            appendClockUnit(builder, minutes);
+            appendClockUnit(builder, seconds);
+            return;
+        }
+
+        if (minutes > 0) {
+            appendClockUnit(builder, minutes);
+            appendClockUnit(builder, seconds);
+            return;
+        }
+
+        appendClockUnit(builder, seconds);
+    }
+
+    /**
+     * Appends a time unit into a string that can be used under the {@code CLOCK} format.
      * If the number of the time unit is greater than 9 it will just append it normally,
-     * otherwise it will appeand a 0 to the left of the number
+     * otherwise it will append a 0 to the left of the number.
      *
-     * @param time Time to be converted
-     * @return the converted time with the conditions mentioned above
+     * @param builder The current clock string.
+     * @param time Time to be appended.
      * @requires {@code time >= 0}
      */
-    private static String clockTimeConvert(long time, String currentFormat) {
-        StringBuilder sb = new StringBuilder();
-
-        if (!currentFormat.isEmpty()) sb.append(":");
-        sb.append("%02d".formatted(time));
-
-        return sb.toString();
+    private static void appendClockUnit(StringBuilder builder, long time) {
+        if (!builder.isEmpty()) builder.append(":");
+        if (time < 10) builder.append("0");
+        builder.append(time);
     }
 
     /**

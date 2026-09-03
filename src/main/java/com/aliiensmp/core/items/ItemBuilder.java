@@ -103,13 +103,44 @@ public class ItemBuilder {
      * @return The current ItemBuilder instance for chaining.
      */
     public ItemBuilder addLoreLine(Component line) {
-        if (line == null || this.meta == null) {
+        if (line == null) {
+            return this;
+        }
+
+        return addLoreLines(List.of(line));
+    }
+
+    /**
+     * Appends multiple new lines to the bottom of the item's existing lore.
+     *
+     * @param lines The Components to append.
+     * @return The current ItemBuilder instance for chaining.
+     */
+    public ItemBuilder addLoreLines(List<Component> lines) {
+        if (lines == null || lines.isEmpty() || this.meta == null) {
             return this;
         }
 
         List<Component> existingLore = this.meta.lore();
-        List<Component> lore = existingLore == null ? new ArrayList<>() : new ArrayList<>(existingLore);
-        lore.add(line);
+        List<Component> lore = existingLore == null
+                ? new ArrayList<>(lines.size())
+                : new ArrayList<>(existingLore.size() + lines.size());
+
+        if (existingLore != null) {
+            lore.addAll(existingLore);
+        }
+
+        int initialSize = lore.size();
+        lines.forEach(line -> {
+            if (line != null) {
+                lore.add(line);
+            }
+        });
+
+        if (lore.size() == initialSize) {
+            return this;
+        }
+
         this.meta.lore(lore);
         return this;
     }
@@ -126,13 +157,24 @@ public class ItemBuilder {
     }
 
     /**
+     * Appends multiple raw string lines to the bottom of the item's existing lore.
+     * Automatically parses colors via ColorUtils.
+     *
+     * @param lines The Strings to append.
+     * @return The current ItemBuilder instance for chaining.
+     */
+    public ItemBuilder addStringLoreLines(List<String> lines) {
+        if (lines == null) return this;
+        return addLoreLines(ColorUtils.color(lines));
+    }
+
+    /**
      * Sets the custom model data for the item (used for resource packs).
      * If the ID is invalid (<=0), no changes are applied.
      *
      * @param modelData The custom model ID to apply.
      * @return The current ItemBuilder instance for chaining.
      */
-    @SuppressWarnings("deprecation")
     public ItemBuilder customModelData(int modelData) {
         if (this.meta != null && modelData > 0) this.meta.setCustomModelData(modelData);
         return this;

@@ -7,7 +7,6 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * A chainable, asynchronous builder for sending Discord Webhooks.
@@ -144,46 +143,43 @@ public class DiscordWebhook {
     /**
      * Compiles the configured webhook data into a JSON payload and dispatches it
      * asynchronously to the Discord API using Java's native HttpClient.
-     * * Because this utilizes CompletableFuture.runAsync(), it is completely non-blocking
-     * and is strictly safe to execute directly on the main server thread without causing lag.
+     * The HTTP dispatch itself is asynchronous and safe to start from the main server thread.
      */
     public void sendAsync() {
         if (this.webhookUrl == null || this.webhookUrl.isEmpty()) return;
 
-        CompletableFuture.runAsync(() -> {
-            try {
-                // Attach the fields array to the embed if it has anything in it
-                if (!this.fieldsArray.isEmpty()) {
-                    this.embed.add("fields", this.fieldsArray);
-                }
-
-                JsonArray embedsArray = new JsonArray();
-                embedsArray.add(this.embed);
-
-                JsonObject payload = new JsonObject();
-                payload.add("embeds", embedsArray);
-                if (this.content != null) payload.addProperty("content", this.content);
-
-                // Build the HTTP POST request
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(this.webhookUrl))
-                        .header("Content-Type", "application/json")
-                        .header("User-Agent", "AliienCore")
-                        .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
-                        .build();
-
-                // Send the request async
-                HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                        .thenAccept(response -> {
-                            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                                System.err.println("[AliienCore] Discord Webhook failed: HTTP " + response.statusCode());
-                            }
-                        });
-
-            } catch (Exception e) {
-                System.err.println("[AliienCore] Failed to build Discord Webhook payload.");
-                e.printStackTrace();
+        try {
+            // Attach the fields array to the embed if it has anything in it
+            if (!this.fieldsArray.isEmpty()) {
+                this.embed.add("fields", this.fieldsArray);
             }
-        });
+
+            JsonArray embedsArray = new JsonArray();
+            embedsArray.add(this.embed);
+
+            JsonObject payload = new JsonObject();
+            payload.add("embeds", embedsArray);
+            if (this.content != null) payload.addProperty("content", this.content);
+
+            // Build the HTTP POST request
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(this.webhookUrl))
+                    .header("Content-Type", "application/json")
+                    .header("User-Agent", "AliienCore")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                    .build();
+
+            // Send the request async
+            HTTP_CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenAccept(response -> {
+                        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                            System.err.println("[AliienCore] Discord Webhook failed: HTTP " + response.statusCode());
+                        }
+                    });
+
+        } catch (Exception e) {
+            System.err.println("[AliienCore] Failed to build Discord Webhook payload.");
+            e.printStackTrace();
+        }
     }
 }

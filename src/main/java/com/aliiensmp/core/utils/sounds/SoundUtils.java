@@ -3,9 +3,15 @@ package com.aliiensmp.core.utils.sounds;
 import org.bukkit.Sound;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SoundUtils {
+
+    private static final Map<String, Sound> VANILLA_SOUNDS = Arrays.stream(Sound.values())
+            .collect(Collectors.toUnmodifiableMap(Sound::name, sound -> sound));
 
     private SoundUtils() {
     }
@@ -34,14 +40,7 @@ public class SoundUtils {
             return null;
         }
 
-        Sound vanillaSound = null;
-        try {
-            // Try to resolve it as a standard Bukkit Vanilla sound first
-            vanillaSound = Sound.valueOf(soundKey.toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
-            // If it's not a vanilla enum, keep vanillaSound as null
-            // The CustomSound record will automatically fall back to using the 'soundKey' string.
-        }
+        Sound vanillaSound = VANILLA_SOUNDS.get(soundKey.toUpperCase(Locale.ROOT));
 
         return new CustomSound(soundKey, vanillaSound, parsedSound.volume(), parsedSound.pitch());
     }
