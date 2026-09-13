@@ -2,6 +2,9 @@ package com.aliiensmp.core.utils;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +35,7 @@ public final class ColorUtils {
      * @param text The raw string to colorize.
      * @return A fully serialized Component, or an empty Component if the input is null.
      */
-    public static Component color(String text) {
+    public static @NotNull Component color(@Nullable String text) {
         if (text == null || text.isEmpty()) {
             return Component.empty();
         }
@@ -47,7 +50,7 @@ public final class ColorUtils {
      * @param lore The list of raw strings to colorize.
      * @return A list of formatted Components.
      */
-    public static List<Component> color(List<String> lore) {
+    public static @NotNull List<Component> color(@Nullable List<String> lore) {
         if (lore == null || lore.isEmpty()) {
             return List.of();
         }
@@ -66,7 +69,7 @@ public final class ColorUtils {
      * @param text The text to be converted
      * @return The text converted, or the originak text is there is nothing to convert
      */
-    public static String translateLegacyFormatting(String text) {
+    public static @NotNull String translateLegacyFormatting(@NotNull String text) {
         if (text.indexOf('&') < 0 && text.indexOf(SECTION_CHAR) < 0) {
             return text;
         }
@@ -96,7 +99,7 @@ public final class ColorUtils {
         return builder.toString();
     }
 
-    private static boolean isHexColor(String text, int startIndex) {
+    private static boolean isHexColor(@NotNull String text, int startIndex) {
         for (int i = startIndex; i < startIndex + 6; i++) {
             if (!isHexDigit(text.charAt(i))) {
                 return false;
@@ -111,7 +114,7 @@ public final class ColorUtils {
                 || (character >= 'A' && character <= 'F');
     }
 
-    private static String legacyReplacement(char code) {
+    private static @Nullable String legacyReplacement(char code) {
         return switch (Character.toLowerCase(code)) {
             case '0' -> "<black>";
             case '1' -> "<dark_blue>";

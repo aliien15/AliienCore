@@ -1,5 +1,7 @@
 package com.aliiensmp.core.utils;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,7 +17,7 @@ public class DurationUtils {
      * @param input the String input to convert
      * @return the input converted
      */
-    public static Duration parse(String input) {
+    public static @NotNull Duration parse(String input) {
         if (input == null || input.isBlank()) {
             return Duration.ZERO;
         }
@@ -64,7 +66,7 @@ public class DurationUtils {
      * @param duration the duration to be converted
      * @return a duration object, or "Permanent" if the duration is null, zero, or negative.
      */
-    public static String format(Duration duration) {
+    public static @NotNull String format(Duration duration) {
         return format(duration, Style.SHORT);
     }
 
@@ -75,7 +77,7 @@ public class DurationUtils {
      * @param style the format of the output
      * @return a duration object, or "Permanent" if the duration is null, zero, or negative.
      */
-    public static String format(Duration duration, Style style) {
+    public static @NotNull String format(Duration duration, Style style) {
         if (duration == null || duration.isZero() || duration.isNegative()) {
             return "Permanent";
         }

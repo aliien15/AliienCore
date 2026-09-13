@@ -5,6 +5,7 @@ import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -55,8 +56,22 @@ public final class MessageUtils {
      * @param message      The raw message string.
      * @param placeholders Local placeholder pairs (e.g., "%player%", "Aliien").
      */
-    public static void sendIfOnline(UUID playerUuid, String prefix, String message, String... placeholders) {
+    public static void sendIfOnline(@NotNull UUID playerUuid, String prefix, String message, String... placeholders) {
         Optional.ofNullable(Bukkit.getPlayer(playerUuid)).ifPresent(p -> send(p, prefix, message, placeholders));
+    }
+
+
+    /**
+     * Sends a fully formatted message to a {@link Player} if they are online through their name as {@link String}
+     * This is recommended over the regular send method if you are executing this async/outside the main thread
+     *
+     * @param playerName   The Player Name
+     * @param prefix       The plugin's prefix (can be empty or null).
+     * @param message      The raw message string.
+     * @param placeholders Local placeholder pairs (e.g., "%player%", "Aliien").
+     */
+    public static void sendIfOnline(@NotNull String playerName, String prefix, String message, String... placeholders) {
+        Optional.ofNullable(Bukkit.getPlayer(playerName)).ifPresent(p -> send(p, prefix, message, placeholders));
     }
 
     /**
@@ -118,8 +133,20 @@ public final class MessageUtils {
      * @param message      The raw action bar string.
      * @param placeholders Local placeholder pairs.
      */
-    public static void sendActionBarIfOnline(UUID playerUuid, String message, String... placeholders) {
+    public static void sendActionBarIfOnline(@NotNull UUID playerUuid, String message, String... placeholders) {
         Optional.ofNullable(Bukkit.getPlayer(playerUuid)).ifPresent(p -> sendActionBar(p, message, placeholders));
+    }
+
+    /**
+     * Sends a fully formatted Action Bar message to a {@link Player} if they are online through their name as {@link String}
+     * This is recommended over the regular sendActionBar method if you are executing this async/outside the main thread
+     *
+     * @param playerName   The recipient.
+     * @param message      The raw action bar string.
+     * @param placeholders Local placeholder pairs.
+     */
+    public static void sendActionBarIfOnline(@NotNull String playerName, String message, String... placeholders) {
+        Optional.ofNullable(Bukkit.getPlayer(playerName)).ifPresent(p -> sendActionBar(p, message, placeholders));
     }
 
     /**
@@ -150,8 +177,21 @@ public final class MessageUtils {
      * @param subtitle     The raw subtitle string.
      * @param placeholders Local placeholder pairs.
      */
-    public static void sendTitleIfOnline(UUID playerUuid, String title, String subtitle, String... placeholders) {
+    public static void sendTitleIfOnline(@NotNull UUID playerUuid, String title, String subtitle, String... placeholders) {
         Optional.ofNullable(Bukkit.getPlayer(playerUuid)).ifPresent(p -> sendTitle(p, title, subtitle, placeholders));
+    }
+
+    /**
+     * Sends a fully formatted Title and Subtitle to a {@link Player} if they are online through their name as {@link String}
+     * This is recommended over the regular sendTitle method if you are executing this async/outside the main thread
+     *
+     * @param playerName   The recipient.
+     * @param title        The raw main title string.
+     * @param subtitle     The raw subtitle string.
+     * @param placeholders Local placeholder pairs.
+     */
+    public static void sendTitleIfOnline(@NotNull String playerName, String title, String subtitle, String... placeholders) {
+        Optional.ofNullable(Bukkit.getPlayer(playerName)).ifPresent(p -> sendTitle(p, title, subtitle, placeholders));
     }
 
     /**

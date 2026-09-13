@@ -3,6 +3,9 @@ package com.aliiensmp.core.database;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.sql.Connection;
@@ -17,6 +20,10 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Centralized database manager handling connection pooling via HikariCP
+ * and non-blocking asynchronous queries.
+ */
 public class DatabaseManager {
 
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class.getName());
@@ -27,10 +34,13 @@ public class DatabaseManager {
     private volatile ExecutorService asyncExecutor;
 
     /**
-     * Method to be passed from the database type used later on
-     * @param config
+     * Initializes the connection pool and backing executor service using a pre-configured {@link HikariConfig}.
+     * <p>
+     * If an existing pool or executor is active, it will be safely shut down before the new one is created.
+     *
+     * @param config the configured HikariCP settings
      */
-    public synchronized void connect(HikariConfig config) {
+    public synchronized void connect(@NotNull HikariConfig config) {
         disconnect();
 
         if (config.getPoolName() == null) {
@@ -42,7 +52,8 @@ public class DatabaseManager {
     }
 
     /**
-     * Closes the connection with the database
+     * Closes the active {@link HikariDataSource} connection pool and terminates
+     * the asynchronous thread pool executor.
      */
     public synchronized void disconnect() {
         ExecutorService executor = asyncExecutor;
@@ -59,9 +70,12 @@ public class DatabaseManager {
     }
 
     /**
-     * @return a connection grabbed from the pool
-     * @throws SQLException
+     * Obtains an active connection from the pool.
+     *
+     * @return an active {@link Connection} from the pool
+     * @throws SQLException if the pool is uninitialized, closed, or unable to allocate a connection
      */
+    @NotNull
     public Connection getConnection() throws SQLException {
         HikariDataSource currentDataSource = dataSource;
         if (currentDataSource == null || currentDataSource.isClosed()) {
@@ -71,13 +85,14 @@ public class DatabaseManager {
     }
 
     /**
-     * Executes an async database update (INSERT, UPDATE, DELETE, CREATE)
+     * Executes an asynchronous write operation ({@code INSERT}, {@code UPDATE}, {@code DELETE}, {@code CREATE}).
      *
-     * @param query The SQL query with '?' placeholders.
-     * @param params The variables to inject into the placeholders.
-     * @return A CompletableFuture returning true if successful, false if it failed.
+     * @param query  the SQL statement using '?' parameter placeholders
+     * @param params positional arguments matching the query placeholders
+     * @return a {@link CompletableFuture} yielding {@code true} if successful, or {@code false} if an error occurred
      */
-    public CompletableFuture<Boolean> executeAsync(String query, Object... params) {
+    @NotNull
+    public CompletableFuture<Boolean> executeAsync(@NotNull String query, @NotNull Object... params) {
         ExecutorService executor = getAsyncExecutor();
         if (executor == null) {
             return CompletableFuture.completedFuture(false);
@@ -88,7 +103,6 @@ public class DatabaseManager {
                  PreparedStatement ps = conn.prepareStatement(query)) {
 
                 bindParameters(ps, params);
-
                 ps.executeUpdate();
                 return true;
 
@@ -100,14 +114,16 @@ public class DatabaseManager {
     }
 
     /**
-     * Executes an async database query (SELECT).
+     * Executes an asynchronous read operation ({@code SELECT}) and parses the resulting {@link ResultSet}.
      *
-     * @param query The SQL query with '?' placeholders.
-     * @param parser A function dictating how to read the ResultSet.
-     * @param params The variables to inject into the placeholders.
-     * @return A CompletableFuture containing the parsed data.
+     * @param <T>    the return type parsed from the query result
+     * @param query  the SQL statement using '?' parameter placeholders
+     * @param parser a transformation function mapping the {@link ResultSet} to the target type
+     * @param params positional arguments matching the query placeholders
+     * @return a {@link CompletableFuture} containing the parsed result, or {@code null} if execution failed
      */
-    public <T> CompletableFuture<T> queryAsync(String query, Function<ResultSet, T> parser, Object... params) {
+    @NotNull
+    public <T> CompletableFuture<@Nullable T> queryAsync(@NotNull String query, @NotNull Function<ResultSet, T> parser, @NotNull Object... params) {
         ExecutorService executor = getAsyncExecutor();
         if (executor == null) {
             return CompletableFuture.completedFuture(null);
@@ -131,9 +147,16 @@ public class DatabaseManager {
     }
 
     /**
-     * Initializes a local SQLite database connection.
+     * Initializes a local SQLite database connection pool.
+     * <p>
+     * Pool size is strictly locked to 1 to prevent database file locks.
+     * The file name does not require the {@code .db} extension; it will be appended automatically if missing.
+     *
+     * @param plugin   the owning plugin instance used to resolve the data folder
+     * @param fileName the target database file name
+     * @throws IllegalStateException if the plugin data directory cannot be created
      */
-    public void connectSQLite(Plugin plugin, String fileName) {
+    public void connectSQLite(@NotNull Plugin plugin, @NotNull String fileName) throws IllegalStateException {
         if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs() && !plugin.getDataFolder().isDirectory()) {
             throw new IllegalStateException("Unable to create plugin data folder: " + plugin.getDataFolder().getAbsolutePath());
         }
@@ -154,16 +177,28 @@ public class DatabaseManager {
     }
 
     /**
-     * Initializes a local file-based H2 database with default network optimizations.
+     * Initializes an embedded H2 database connection pool using default connection limits and timeouts.
+     *
+     * @param plugin   the owning plugin instance used to resolve the data folder
+     * @param fileName the target database file name (without {@code .db} or {@code .mv.db})
+     * @throws IllegalStateException if the plugin data directory cannot be created
      */
-    public void connectH2(Plugin plugin, String fileName) {
-        connectH2(plugin, fileName, 10, 2, 10000L, 1800000L);
+    public void connectH2(@NotNull Plugin plugin, @NotNull String fileName) throws IllegalStateException {
+        connectH2(plugin, fileName, 10, 2, 10_000L, 1_800_000L);
     }
 
     /**
-     * Initializes a local file-based H2 databasea.
+     * Initializes an embedded H2 database connection pool with fine-grained pool sizing and timeouts.
+     *
+     * @param plugin      the owning plugin instance used to resolve the data folder
+     * @param fileName    the target database file name
+     * @param maxPoolSize the maximum number of connections allowed in the pool
+     * @param minIdle     the minimum number of idle connections maintained
+     * @param timeout     maximum time in milliseconds to wait for a connection from the pool
+     * @param maxLifetime maximum lifetime in milliseconds for an existing connection in the pool
+     * @throws IllegalStateException if the plugin data directory cannot be created
      */
-    public void connectH2(Plugin plugin, String fileName, int maxPoolSize, int minIdle, long timeout, long maxLifetime) {
+    public void connectH2(@NotNull Plugin plugin, @NotNull String fileName, int maxPoolSize, int minIdle, long timeout, long maxLifetime) throws IllegalStateException {
         if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs() && !plugin.getDataFolder().isDirectory()) {
             throw new IllegalStateException("Unable to create plugin data folder: " + plugin.getDataFolder().getAbsolutePath());
         }
@@ -172,8 +207,6 @@ public class DatabaseManager {
         File dbFile = new File(plugin.getDataFolder(), cleanName);
 
         HikariConfig config = new HikariConfig();
-
-        // AUTO_SERVER=TRUE enables automatic embedded server mode (safe multi-process connections)
         config.setJdbcUrl("jdbc:h2:file:" + dbFile.getAbsolutePath() + ";AUTO_SERVER=TRUE;MODE=MySQL");
         config.setDriverClassName("org.h2.Driver");
         config.setMaximumPoolSize(maxPoolSize);
@@ -194,16 +227,32 @@ public class DatabaseManager {
     }
 
     /**
-     * Standard MySQL connection with my default network optimizations
+     * Initializes a MySQL connection pool using default limits (max pool 10, min idle 10, 10s timeout, 30m lifetime).
+     *
+     * @param host     the database host address
+     * @param port     the database port (usually 3306)
+     * @param database the schema or database name
+     * @param username the authentication user
+     * @param password the authentication password
      */
-    public void connectMySQL(String host, int port, String database, String username, String password) {
-        connectMySQL(host, port, database, username, password, 10, 10, 10000, 1800000);
+    public void connectMySQL(@NotNull String host, int port, @NotNull String database, @NotNull String username, @NotNull String password) {
+        connectMySQL(host, port, database, username, password, 10, 10, 10_000L, 1_800_000L);
     }
 
     /**
-     * MySQL connection that allows full control over HikariCP optimizations
+     * Initializes a MySQL connection pool with fine-grained performance properties and pool limits.
+     *
+     * @param host        the database host address
+     * @param port        the database port (usually 3306)
+     * @param database    the schema or database name
+     * @param username    the authentication user
+     * @param password    the authentication password
+     * @param maxPoolSize the maximum number of connections in the pool
+     * @param minIdle     the minimum number of idle connections maintained
+     * @param timeout     connection timeout in milliseconds
+     * @param maxLifetime maximum lifetime of a connection in milliseconds
      */
-    public void connectMySQL(String host, int port, String database, String username, String password, int maxPoolSize, int minIdle, long timeout, long maxLifetime) {
+    public void connectMySQL(@NotNull String host, int port, @NotNull String database, @NotNull String username, @NotNull String password, int maxPoolSize, int minIdle, long timeout, long maxLifetime) {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mysql://" + host + ":" + port + "/" + database);
         config.setUsername(username);
@@ -213,6 +262,7 @@ public class DatabaseManager {
         config.setConnectionTimeout(timeout);
         config.setValidationTimeout(Math.min(timeout, 5_000L));
         config.setMaxLifetime(maxLifetime);
+
         if (maxLifetime > 0L) {
             long keepaliveTime = Math.min(300_000L, Math.max(30_000L, maxLifetime / 2));
             if (keepaliveTime < maxLifetime) {
@@ -236,16 +286,32 @@ public class DatabaseManager {
     }
 
     /**
-     * Standard MariaDB connection with my default network optimizations
+     * Initializes a MariaDB connection pool using default limits (max pool 10, min idle 10, 10s timeout, 30m lifetime).
+     *
+     * @param host     the database host address
+     * @param port     the database port (usually 3306)
+     * @param database the schema or database name
+     * @param username the authentication user
+     * @param password the authentication password
      */
-    public void connectMariaDB(String host, int port, String database, String username, String password) {
-        connectMariaDB(host, port, database, username, password, 10, 10, 10000, 1800000);
+    public void connectMariaDB(@NotNull String host, int port, @NotNull String database, @NotNull String username, @NotNull String password) {
+        connectMariaDB(host, port, database, username, password, 10, 10, 10_000L, 1_800_000L);
     }
 
     /**
-     * MariaDB connection that allows full control over HikariCP optimizations
+     * Initializes a MariaDB connection pool with fine-grained performance properties and pool limits.
+     *
+     * @param host        the database host address
+     * @param port        the database port (usually 3306)
+     * @param database    the schema or database name
+     * @param username    the authentication user
+     * @param password    the authentication password
+     * @param maxPoolSize the maximum number of connections in the pool
+     * @param minIdle     the minimum number of idle connections maintained
+     * @param timeout     connection timeout in milliseconds
+     * @param maxLifetime maximum lifetime of a connection in milliseconds
      */
-    public void connectMariaDB(String host, int port, String database, String username, String password, int maxPoolSize, int minIdle, long timeout, long maxLifetime) {
+    public void connectMariaDB(@NotNull String host, int port, @NotNull String database, @NotNull String username, @NotNull String password, int maxPoolSize, int minIdle, long timeout, long maxLifetime) {
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl("jdbc:mariadb://" + host + ":" + port + "/" + database);
         config.setUsername(username);
@@ -255,6 +321,7 @@ public class DatabaseManager {
         config.setConnectionTimeout(timeout);
         config.setValidationTimeout(Math.min(timeout, 5_000L));
         config.setMaxLifetime(maxLifetime);
+
         if (maxLifetime > 0L) {
             long keepaliveTime = Math.min(300_000L, Math.max(30_000L, maxLifetime / 2));
             if (keepaliveTime < maxLifetime) {
@@ -273,6 +340,7 @@ public class DatabaseManager {
         connect(config);
     }
 
+    @NotNull
     private ExecutorService createExecutor(int maximumPoolSize) {
         int threadCount = Math.max(1, Math.min(maximumPoolSize, MAX_ASYNC_THREADS));
         return Executors.newFixedThreadPool(threadCount, runnable -> {
@@ -282,6 +350,7 @@ public class DatabaseManager {
         });
     }
 
+    @Nullable
     private ExecutorService getAsyncExecutor() {
         ExecutorService executor = asyncExecutor;
         if (executor == null || executor.isShutdown()) {
@@ -291,13 +360,13 @@ public class DatabaseManager {
         return executor;
     }
 
-    private void bindParameters(PreparedStatement statement, Object... params) throws SQLException {
+    private void bindParameters(@NotNull PreparedStatement statement, @NotNull Object... params) throws SQLException {
         for (int i = 0; i < params.length; i++) {
             statement.setObject(i + 1, params[i]);
         }
     }
 
-    private void logFailure(String operation, String query, Exception exception) {
+    private void logFailure(@NotNull String operation, @NotNull String query, @NotNull Exception exception) {
         LOGGER.log(Level.WARNING, "Failed to execute database " + operation + ": " + query, exception);
     }
 }

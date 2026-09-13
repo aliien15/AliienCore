@@ -2,6 +2,8 @@ package com.aliiensmp.core.discord;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -26,7 +28,7 @@ public class DiscordWebhook {
      *
      * @param webhookUrl The destination URL for the webhook.
      */
-    public DiscordWebhook(String webhookUrl) {
+    public DiscordWebhook(@Nullable String webhookUrl) {
         this.webhookUrl = webhookUrl;
         this.embed = new JsonObject();
         this.fieldsArray = new JsonArray();
@@ -38,7 +40,7 @@ public class DiscordWebhook {
      * @param title The text to display as the title.
      * @return This builder instance for chaining.
      */
-    public DiscordWebhook setTitle(String title) {
+    public DiscordWebhook setTitle(@Nullable String title) {
         if (title != null) this.embed.addProperty("title", title);
         return this;
     }
@@ -49,7 +51,7 @@ public class DiscordWebhook {
      * @param description The text to display as the description
      * @return This builder instance for chaining.
      */
-    public DiscordWebhook setDescription(String description) {
+    public DiscordWebhook setDescription(@Nullable String description) {
         if (description != null) this.embed.addProperty("description", description);
         return this;
     }
@@ -71,7 +73,7 @@ public class DiscordWebhook {
      * * @param hexString The string representation of a hex color.
      * @return This builder instance for chaining.
      */
-    public DiscordWebhook setColor(String hexString) {
+    public DiscordWebhook setColor(@Nullable String hexString) {
         if (hexString == null || hexString.isEmpty()) return this;
 
         try {
@@ -95,7 +97,7 @@ public class DiscordWebhook {
      * @param content The raw text message to send.
      * @return This builder instance for chaining.
      */
-    public DiscordWebhook setContent(String content) {
+    public DiscordWebhook setContent(@NotNull String content) {
         return setContent(content, false);
     }
 
@@ -112,7 +114,7 @@ public class DiscordWebhook {
      * @param isRoleToPing If {@code true}, wraps the input string in Discord's role mention format ({@code <@&content>}).
      * @return This builder instance for chaining.
      */
-    public DiscordWebhook setContent(String content, boolean isRoleToPing) {
+    public DiscordWebhook setContent(@Nullable String content, boolean isRoleToPing) {
         if (content != null && !content.isEmpty())
             this.content = isRoleToPing ? "<@&" + content + ">" : content;
 
@@ -128,7 +130,7 @@ public class DiscordWebhook {
      * @param inline If true, the field will attempt to display side-by-side with other inline fields.
      * @return This builder instance for chaining.
      */
-    public DiscordWebhook addField(String name, String value, boolean inline) {
+    public DiscordWebhook addField(@Nullable String name, @Nullable String value, boolean inline) {
         if (name == null || value == null) return this;
 
         JsonObject object = new JsonObject();

@@ -4,6 +4,7 @@ import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Optional;
@@ -35,7 +36,7 @@ public class ChatPrompt {
      * @param onCancel what to do if the input gets canceled (the time runs out, the player leaves, etc)
      * @requires params should not be null
      */
-    public static void startInput(Player player, long waitingTime, Consumer<String> input, Runnable onCancel) {
+    public static void startInput(@NotNull Player player, long waitingTime, @NotNull Consumer<String> input, @NotNull Runnable onCancel) {
         UUID playerUuid = player.getUniqueId();
         cancelPrompt(playerUuid);
 
@@ -56,7 +57,7 @@ public class ChatPrompt {
      * @ensures the method properly handles situations where the plugin isn't waiting for a player's input/prompt,
      * which means that this can be used in "just-to-make-sure" situations
      */
-    protected static void cancelPrompt(UUID playerUuid) {
+    protected static void cancelPrompt(@NotNull UUID playerUuid) {
         Optional.ofNullable(ACTIVE_PROMPTS.remove(playerUuid)).ifPresent(prompt -> {
             prompt.timeoutTask().cancel();
             prompt.onCancel().run();
@@ -67,7 +68,7 @@ public class ChatPrompt {
      * @param uuid the player's UUID to check
      * @return true if the plugin is currently waiting for a chat input from this player
      */
-    public static boolean hasPrompt(UUID uuid) {
+    public static boolean hasPrompt(@NotNull UUID uuid) {
         return ACTIVE_PROMPTS.containsKey(uuid);
     }
 

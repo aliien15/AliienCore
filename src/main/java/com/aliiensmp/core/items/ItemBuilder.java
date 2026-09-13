@@ -10,7 +10,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +36,7 @@ public class ItemBuilder {
      *
      * @param material The Material of the item.
      */
-    public ItemBuilder(Material material) {
+    public ItemBuilder(@NotNull Material material) {
         this.item = new ItemStack(material);
         this.meta = item.getItemMeta();
     }
@@ -44,7 +47,7 @@ public class ItemBuilder {
      * @param material The Material of the item.
      * @param amount   The amount of items in this stack.
      */
-    public ItemBuilder(Material material, int amount) {
+    public ItemBuilder(@NotNull Material material, int amount) {
         this.item = new ItemStack(material, amount);
         this.meta = item.getItemMeta();
     }
@@ -55,7 +58,7 @@ public class ItemBuilder {
      * @param name The Component representing the new display name.
      * @return The current ItemBuilder instance for chaining.
      */
-    public ItemBuilder name(Component name) {
+    public ItemBuilder name(@Nullable Component name) {
         if (this.meta != null) this.meta.displayName(name);
         return this;
     }
@@ -67,7 +70,7 @@ public class ItemBuilder {
      * @param name The name in a string format
      * @return The current ItemBuilder instance for chaining.
      */
-    public ItemBuilder name(String name) {
+    public ItemBuilder name(@Nullable String name) {
         return name(ColorUtils.color(name));
     }
 
@@ -77,7 +80,7 @@ public class ItemBuilder {
      * @param lore The list of Components to set as the item's lore.
      * @return The current ItemBuilder instance for chaining.
      */
-    public ItemBuilder lore(List<Component> lore) {
+    public ItemBuilder lore(@Nullable List<Component> lore) {
         if (this.meta != null) {
             this.meta.lore(lore);
         }
@@ -91,7 +94,7 @@ public class ItemBuilder {
      * @param lore The list of Strings to set as the item's lore.
      * @return The current ItemBuilder instance for chaining.
      */
-    public ItemBuilder stringLore(List<String> lore) {
+    public ItemBuilder stringLore(@Nullable List<String> lore) {
         if (lore == null) return this;
         return lore(ColorUtils.color(lore));
     }
@@ -102,7 +105,7 @@ public class ItemBuilder {
      * @param line The Component to append.
      * @return The current ItemBuilder instance for chaining.
      */
-    public ItemBuilder addLoreLine(Component line) {
+    public ItemBuilder addLoreLine(@Nullable Component line) {
         if (line == null) {
             return this;
         }
@@ -116,7 +119,7 @@ public class ItemBuilder {
      * @param lines The Components to append.
      * @return The current ItemBuilder instance for chaining.
      */
-    public ItemBuilder addLoreLines(List<Component> lines) {
+    public ItemBuilder addLoreLines(@Nullable List<Component> lines) {
         if (lines == null || lines.isEmpty() || this.meta == null) {
             return this;
         }
@@ -152,7 +155,7 @@ public class ItemBuilder {
      * @param line The String to append.
      * @return The current ItemBuilder instance for chaining.
      */
-    public ItemBuilder addLoreLine(String line) {
+    public ItemBuilder addLoreLine(@Nullable String line) {
         return addLoreLine(ColorUtils.color(line));
     }
 
@@ -163,7 +166,7 @@ public class ItemBuilder {
      * @param lines The Strings to append.
      * @return The current ItemBuilder instance for chaining.
      */
-    public ItemBuilder addStringLoreLines(List<String> lines) {
+    public ItemBuilder addStringLoreLines(@Nullable List<String> lines) {
         if (lines == null) return this;
         return addLoreLines(ColorUtils.color(lines));
     }
@@ -217,10 +220,10 @@ public class ItemBuilder {
      * @param value  The actual data string you want to store (e.g., "ban_player").
      * @return       The current ItemBuilder instance for chaining.
      */
-    public ItemBuilder addStringTag(Plugin plugin, String key, String value) {
+    public ItemBuilder addStringTag(@NotNull Plugin plugin, @NotNull String key, @NotNull String value) {
         if (this.meta != null) {
             NamespacedKey namespacedKey = new NamespacedKey(plugin, key);
-            this.meta.getPersistentDataContainer().set(namespacedKey, org.bukkit.persistence.PersistentDataType.STRING, value);
+            this.meta.getPersistentDataContainer().set(namespacedKey, PersistentDataType.STRING, value);
         }
         return this;
     }

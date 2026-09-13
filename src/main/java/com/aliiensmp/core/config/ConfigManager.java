@@ -7,6 +7,7 @@ import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +49,7 @@ public class ConfigManager {
      * @requires {@code fileName != null} and has to include the {@code .yml} extension at the end
      * @throws IOException If it fails to create a directory to the file if it didn't exist already
      */
-    public static YamlDocument loadConfig(JavaPlugin plugin, String fileName) throws IOException {
+    public static YamlDocument loadConfig(@NotNull JavaPlugin plugin, @NotNull String fileName) throws IOException {
         File configFile = new File(plugin.getDataFolder(), fileName);
         File parent = configFile.getParentFile();
         if (parent != null && !parent.exists() && !parent.mkdirs() && !parent.isDirectory()) {
@@ -72,7 +73,7 @@ public class ConfigManager {
      * @param config the config file
      * @param configInstance the config instance (or Class object)
      */
-    public static void bindConfig(YamlDocument config, Object configInstance) {
+    public static void bindConfig(@NotNull YamlDocument config, @NotNull Object configInstance) {
         boolean needsSave = false;
 
         // Determine the target class, even if a static Class object was passed.
