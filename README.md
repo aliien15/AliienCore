@@ -14,7 +14,7 @@ To use AliienCore in your premium plugins, you need to compile it locally and sh
 ### 1. Installation
 Clone the repository and install it to your local Maven repository:
 ```bash
-git clone [https://github.com/aliien15/AliienCore](https://github.com/aliien15/AliienCore)
+git clone https://github.com/aliien15/AliienCore
 cd AliienCore # (or whatever directory you want to have it in)
 mvn clean install
 ```
@@ -69,7 +69,7 @@ public void onEnable() {
 Capture player input safely without writing manual chat listeners. Fully Folia-safe and automatically handles timeouts, cancellations, and overlapping prompts.
 
 ```java
-import com.aliiensmp.core.utils.ChatPrompt;
+import com.aliiensmp.core.input.chat.ChatPrompt;
 
 public void promptPlayer(Player player) {
     MessageUtils.send(player, Settings.PREFIX, "Type your reason in chat, or type 'cancel' to abort.");
