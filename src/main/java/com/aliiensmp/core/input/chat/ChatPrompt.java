@@ -13,8 +13,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 public class ChatPrompt {
-    protected static final Map<UUID, ActivePrompt> ACTIVE_PROMPTS = new ConcurrentHashMap();
+    protected static final Map<UUID, ActivePrompt> ACTIVE_PROMPTS = new ConcurrentHashMap<>();
     protected static JavaPlugin plugin;
+    protected volatile static String cancellationToggle = "cancel";
     protected record ActivePrompt(Consumer<String> onInput, Runnable onCancel, ScheduledTask timeoutTask) {}
 
     /**
@@ -70,6 +71,26 @@ public class ChatPrompt {
      */
     public static boolean hasPrompt(@NotNull UUID uuid) {
         return ACTIVE_PROMPTS.containsKey(uuid);
+    }
+
+    /**
+     * Set whatever players have to type in the chat to cancel a chat prompt to whatever you want. This
+     * value is, by default, set to {@code "cancel"}, so if you don't use this method it'll just be that.
+     * I recommend making this something intuitive and not something that the players may want to type
+     * into the prompt.
+     *
+     * @param newCancellationToggle the new cancellation {@link String}
+     * @requires {@code newCancellationToggle.isBlank() == false}
+     * @ensures the async chat listenener will ignore the capitalization of the string. For example, if it is
+     *      set to "cancel" players can also use "Cancel", "CANCEL", "CaNcEl", etc.
+     * @throws IllegalArgumentException if the String passed into the function is empty or blank
+     */
+    public static void setCancellationToggle(@NotNull String newCancellationToggle) throws IllegalArgumentException {
+        if (newCancellationToggle.isBlank()) {
+            throw new IllegalArgumentException("String for chat prompt cancellation must not be blank.");
+        }
+
+        cancellationToggle = newCancellationToggle.trim();
     }
 
     /**

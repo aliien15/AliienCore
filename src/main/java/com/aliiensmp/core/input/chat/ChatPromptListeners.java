@@ -1,7 +1,5 @@
 package com.aliiensmp.core.input.chat;
 
-import com.aliiensmp.core.menu.MenuHolder;
-import com.aliiensmp.core.utils.MessageUtils;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
@@ -47,9 +45,9 @@ public class ChatPromptListeners implements Listener {
         event.setCancelled(true);
         action.timeoutTask().cancel();
 
-        String input = PlainTextComponentSerializer.plainText().serialize(event.message());
+        String input = PlainTextComponentSerializer.plainText().serialize(event.message()).trim();
 
-        if (input.equalsIgnoreCase("cancel")) {
+        if (input.equalsIgnoreCase(ChatPrompt.cancellationToggle)) {
             action.onCancel().run();
             return;
         }
