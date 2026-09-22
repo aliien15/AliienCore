@@ -7,12 +7,14 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 public class FileLogger {
@@ -20,7 +22,7 @@ public class FileLogger {
     private static final ConcurrentHashMap<String, Object> FILE_LOCKS = new ConcurrentHashMap<>();
     private Path folderPath;
     private String fileName = "logs.log";
-    private volatile boolean enabled = true;
+    private final AtomicBoolean enabled = new AtomicBoolean(true);
 
     public FileLogger(@NotNull Plugin plugin) {
         this.folderPath = plugin.getDataFolder().toPath();
@@ -40,6 +42,19 @@ public class FileLogger {
     }
 
     /**
+     * Sets the path to where the FileLogger will attempt to write to. By default, this is set to
+     * the path of the plugin used to initialize this instance, so you do not need to use this unless
+     * you want to use some other specific path.
+     *
+     * @param folderPath the path where the FileLogger will write to.
+     * @return this instance for chaining.
+     * @throws InvalidPathException if {@code folderPath} cannot be converted to a {@link Path}/is in an invalid format.
+     */
+    public FileLogger setPath(@NotNull String folderPath) throws InvalidPathException {
+        return this.setPath(Path.of(folderPath));
+    }
+
+    /**
      * Set the name of the file to write to. This is set to "logs.log" by default.
      *
      * @param fileName the name of the file.
@@ -47,7 +62,7 @@ public class FileLogger {
      * @requires fileName must have the file extension at the end (e.g. "logs.log" or "logs.txt")
      * @throws IllegalArgumentException if {@code fileName.isBlank() == true}
      */
-    public FileLogger setFileName(@NotNull String fileName) {
+    public FileLogger setFileName(@NotNull String fileName) throws IllegalArgumentException {
         if (fileName.isBlank()) {
             throw new IllegalArgumentException("File name cannot be blank!");
         }
@@ -64,7 +79,7 @@ public class FileLogger {
      * @return this instance for chaining.
      */
     public FileLogger setEnabled(boolean enabled) {
-        this.enabled = enabled;
+        this.enabled.set(enabled);
         return this;
     }
 
@@ -75,8 +90,8 @@ public class FileLogger {
      * @return the new toggle status after it being toggled
      */
     public boolean toggleEnabled() {
-        this.enabled = !this.enabled;
-        return this.enabled;
+        this.enabled.set(!this.enabled.get());
+        return this.enabled.get();
     }
 
     /**
@@ -86,14 +101,14 @@ public class FileLogger {
      * @param message the message to log into the file.
      */
     public void logAsync(@NotNull String message) {
-        if (!this.enabled) {
+        if (!this.enabled.get()) {
             return;
         }
 
         CompletableFuture.runAsync(() -> {
-            Path targetFile = this.folderPath.resolve(this.fileName);
-            String absolutePath = targetFile.toAbsolutePath().toString();
-            Object fileLock = FILE_LOCKS.computeIfAbsent(absolutePath, k -> new Object());
+            final Path targetFile = this.folderPath.resolve(this.fileName);
+            final String absolutePath = targetFile.toAbsolutePath().toString();
+            final Object fileLock = FILE_LOCKS.computeIfAbsent(absolutePath, k -> new Object());
 
             synchronized (fileLock) {
                 try {
@@ -101,8 +116,8 @@ public class FileLogger {
                         Files.createDirectories(this.folderPath);
                     }
 
-                    String timeStamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
-                    String formattedMessage = "[" + timeStamp + "] " + message + System.lineSeparator();
+                    final String timeStamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
+                    final String formattedMessage = "[" + timeStamp + "] " + message + System.lineSeparator();
 
                     Files.writeString(targetFile, formattedMessage, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
                 } catch (IOException e) {
