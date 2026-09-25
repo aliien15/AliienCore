@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 /**
@@ -143,22 +144,7 @@ public class AliienGUI {
      * also sanitize the {@code requestedPage}, ensuring {@code 1 <= requestedPage <= totalPages} via {@link #getTotalPages}.
      */
     public void setItems(@NotNull List<Integer> slots, @NotNull List<ClickableItem> items, int requestedPage) {
-        if (slots.isEmpty() || items.isEmpty()) {
-            DebugUtils.send(Level.WARNING, "A menu has received an empty list of either slots and/or items to set in the GUI.");
-            return;
-        }
-
-        final int currentPage = sanitizePage(requestedPage, getTotalPages(slots.size(), items.size()));
-        final int itemsPerPage = slots.size();
-        final int itemsToSkip = (currentPage - 1) * itemsPerPage;
-        List<ClickableItem> itemsToPlace = items.stream()
-                .skip(itemsToSkip)
-                .limit(itemsPerPage)
-                .toList();
-
-        for (int i = 0; i < itemsToPlace.size(); i++) {
-            setItem(slots.get(i), itemsToPlace.get(i));
-        }
+        setItems(slots, items, requestedPage, Function.identity());
     }
 
     /**
@@ -173,7 +159,41 @@ public class AliienGUI {
      * @ensures if {@code items.length() < slots.length()} then the remaining slots will just remain empty
      */
     public void setItems(@NotNull List<Integer> slots, @NotNull List<ItemStack> items, Consumer<InventoryClickEvent> action, int currentPage) {
-        setItems(slots, items.stream().map(item -> ClickableItem.of(item, action)).toList(), currentPage);
+        setItems(slots, items, currentPage, item -> ClickableItem.of(item, action));
+    }
+
+    /**
+     * Sets a {@link List} of items in a set of slots, skipping/limitting the items based on
+     * the current page that we are at. This method also receives a function, which will turns your list
+     * of any type you want into a {@link ClickableItem} to place in the GUI. This is useful if you want to, for
+     * example, display items differently depending on permissions or states.
+     *
+     * @param slots the list of slots to fill
+     * @param entries the list of items to fill
+     * @param requestedPage the current page of the menu, which will help define how many items to skip and to limit
+     * @param itemFactory the function that will turn your list of objects into {@link ClickableItem}
+     * @param <T> the type of the items you are passing
+     * @ensures if {@code entries.length() < slots.length()} then the remaining slots will just remain empty. The method will
+     * also sanitize the {@code requestedPage}, ensuring {@code 1 <= requestedPage <= totalPages} via {@link #getTotalPages}.
+     */
+    public <T> void setItems(@NotNull List<Integer> slots, @NotNull List<T> entries, int requestedPage, @NotNull Function<? super T, ClickableItem> itemFactory) {
+        if (slots.isEmpty() || entries.isEmpty()) {
+            DebugUtils.send(Level.WARNING, "A menu has received an empty list of either slots and/or items to set in the GUI.");
+            return;
+        }
+
+        final int currentPage = sanitizePage(requestedPage, getTotalPages(slots.size(), entries.size()));
+        final int itemsPerPage = slots.size();
+        final int itemsToSkip = (currentPage - 1) * itemsPerPage;
+        List<ClickableItem> itemsToPlace = entries.stream()
+                .skip(itemsToSkip)
+                .limit(itemsPerPage)
+                .map(itemFactory)
+                .toList();
+
+        for (int i = 0; i < itemsToPlace.size(); i++) {
+            setItem(slots.get(i), itemsToPlace.get(i));
+        }
     }
 
     /**
