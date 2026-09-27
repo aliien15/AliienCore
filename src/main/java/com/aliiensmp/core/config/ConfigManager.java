@@ -48,8 +48,9 @@ public class ConfigManager {
      * @return The .yml file objects
      * @requires {@code fileName != null} and has to include the {@code .yml} extension at the end
      * @throws IOException If it fails to create a directory to the file if it didn't exist already
+     * @throws NullPointerException if you set {@code fileName} with the name of a file that does not exist within the plugin
      */
-    public static YamlDocument loadConfig(@NotNull JavaPlugin plugin, @NotNull String fileName) throws IOException {
+    public static @NotNull YamlDocument loadConfig(@NotNull JavaPlugin plugin, @NotNull String fileName) throws IOException, NullPointerException {
         File configFile = new File(plugin.getDataFolder(), fileName);
         File parent = configFile.getParentFile();
         if (parent != null && !parent.exists() && !parent.mkdirs() && !parent.isDirectory()) {
