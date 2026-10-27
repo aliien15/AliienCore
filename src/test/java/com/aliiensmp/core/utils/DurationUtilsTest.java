@@ -1,15 +1,16 @@
 package com.aliiensmp.core.utils;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import net.jqwik.api.ForAll;
 import net.jqwik.api.Property;
 import net.jqwik.api.constraints.LongRange;
 import net.jqwik.api.constraints.Positive;
+
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DurationUtilsTest {
 
@@ -25,7 +26,8 @@ class DurationUtilsTest {
 
     // Testing up to 1 year
     @Property
-    void formattedShortStyleShouldAlwaysParseBackToOriginal(@ForAll @Positive @LongRange(max = 31536000L) long seconds) {
+    void formattedShortStyleShouldAlwaysParseBackToOriginal(
+            @ForAll @Positive @LongRange(max = 31536000L) long seconds) {
         Duration original = Duration.ofSeconds(seconds);
         String formatted = DurationUtils.format(original, DurationUtils.Style.SHORT);
         Duration parsed = DurationUtils.parse(formatted);
@@ -43,9 +45,18 @@ class DurationUtilsTest {
 
     @Test
     void clockStyleKeepsZeroPlaceholdersAfterLargestUnit() {
-        assertEquals("04:12", DurationUtils.format(Duration.ofMinutes(4).plusSeconds(12), DurationUtils.Style.CLOCK));
-        assertEquals("02:30:00", DurationUtils.format(Duration.ofHours(2).plusMinutes(30), DurationUtils.Style.CLOCK));
-        assertEquals("02:00:30:00", DurationUtils.format(Duration.ofDays(2).plusMinutes(30), DurationUtils.Style.CLOCK));
+        assertEquals(
+                "04:12",
+                DurationUtils.format(
+                        Duration.ofMinutes(4).plusSeconds(12), DurationUtils.Style.CLOCK));
+        assertEquals(
+                "02:30:00",
+                DurationUtils.format(
+                        Duration.ofHours(2).plusMinutes(30), DurationUtils.Style.CLOCK));
+        assertEquals(
+                "02:00:30:00",
+                DurationUtils.format(
+                        Duration.ofDays(2).plusMinutes(30), DurationUtils.Style.CLOCK));
     }
 
     // Testing up to 99 hours

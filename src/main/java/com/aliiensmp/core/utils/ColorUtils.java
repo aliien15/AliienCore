@@ -2,17 +2,16 @@ package com.aliiensmp.core.utils;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Utility class for handling text colorization and formatting.
- * Utilizes Adventure's MiniMessage API while maintaining fallback support
- * for legacy ampersand (&) color codes and hex codes (&#ffffff).
+ * Utility class for handling text colorization and formatting. Utilizes Adventure's MiniMessage API
+ * while maintaining fallback support for legacy ampersand (&) color codes and hex codes (&#ffffff).
  */
 public final class ColorUtils {
 
@@ -20,17 +19,14 @@ public final class ColorUtils {
     private static final char SECTION_CHAR = '\u00A7';
     private static final String DEFAULT_STYLE_PREFIX = "<!italic>";
 
-    private ColorUtils() {
-    }
+    private ColorUtils() {}
 
     /**
-     * Converts a raw string containing MiniMessage tags, legacy color codes,
-     * or hex codes into the mm format.
+     * Converts a raw string containing MiniMessage tags, legacy color codes, or hex codes into the
+     * mm format.
      *
-     * Supported formats:
-     * - MiniMessage: {@code <red><bold>Text} or {@code <#ffffff>Text}
-     * - Legacy Hex: {@code &#ffffffText}
-     * - Legacy Ampersand: {@code &c&lText}
+     * <p>Supported formats: - MiniMessage: {@code <red><bold>Text} or {@code <#ffffff>Text} -
+     * Legacy Hex: {@code &#ffffffText} - Legacy Ampersand: {@code &c&lText}
      *
      * @param text The raw string to colorize.
      * @return A fully serialized Component, or an empty Component if the input is null.
@@ -44,8 +40,8 @@ public final class ColorUtils {
     }
 
     /**
-     * Converts a list of raw strings into a list of formatted Adventure Components.
-     * Perfect for formatting configuration lore lists.
+     * Converts a list of raw strings into a list of formatted Adventure Components. Perfect for
+     * formatting configuration lore lists.
      *
      * @param lore The list of raw strings to colorize.
      * @return A list of formatted Components.
@@ -63,8 +59,8 @@ public final class ColorUtils {
     }
 
     /**
-     * Converts old color formatting (such as &f or &#ffffff) to the «
-     * MiniMessages format (<white></white> or <#ffffff></#ffffff>)
+     * Converts old color formatting (such as &f or &#ffffff) to the « MiniMessages format
+     * (<white></white> or <#ffffff></#ffffff>)
      *
      * @param text The text to be converted
      * @return The text converted, or the originak text is there is nothing to convert

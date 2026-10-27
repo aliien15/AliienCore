@@ -14,8 +14,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
- * Global listener that handles all inventory interactions for the AliienCore
- * GUI framework. Prevents item duplication and routes click actions.
+ * Global listener that handles all inventory interactions for the AliienCore GUI framework.
+ * Prevents item duplication and routes click actions.
  */
 public class MenuListener implements Listener {
 
@@ -25,9 +25,7 @@ public class MenuListener implements Listener {
         this.plugin = plugin;
     }
 
-    /**
-     * Intercepts clicks and routes them to the appropriate {@link ClickableItem} action.
-     */
+    /** Intercepts clicks and routes them to the appropriate {@link ClickableItem} action. */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getView().getTopInventory().getHolder() instanceof MenuHolder menuHolder) {
@@ -61,20 +59,17 @@ public class MenuListener implements Listener {
         }
     }
 
-    /**
-     * Prevents players from dropping items marked by the GUI system.
-     */
+    /** Prevents players from dropping items marked by the GUI system. */
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
         if (isMarked(event.getItemDrop().getItemStack())) {
             event.getItemDrop().remove();
-            plugin.getLogger().warning("Removed a leaked GUI item dropped by " + event.getPlayer().getName());
+            plugin.getLogger()
+                    .warning("Removed a leaked GUI item dropped by " + event.getPlayer().getName());
         }
     }
 
-    /**
-     * Prevents players from picking up items marked by the GUI system.
-     */
+    /** Prevents players from picking up items marked by the GUI system. */
     @EventHandler
     public void onPickup(EntityPickupItemEvent event) {
         if (isMarked(event.getItem().getItemStack())) {
@@ -84,21 +79,32 @@ public class MenuListener implements Listener {
     }
 
     /**
-     * Scans a player's inventory on login to remove any "ghost" GUI items.
-     * Uses Folia's Entity Scheduler for modern, region-safe threading.
+     * Scans a player's inventory on login to remove any "ghost" GUI items. Uses Folia's Entity
+     * Scheduler for modern, region-safe threading.
      */
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
 
         // 10 ticks delay to ensure the inventory is fully loaded
-        player.getScheduler().runDelayed(plugin, scheduledTask -> {
-            int removedItems = purgeMarkedItems(player);
-            if (removedItems > 0) {
-                plugin.getLogger().warning("Cleaned " + removedItems + " leaked GUI item(s) from " + player.getName() + "'s inventory.");
-                player.updateInventory();
-            }
-        }, null, 10L);
+        player.getScheduler()
+                .runDelayed(
+                        plugin,
+                        scheduledTask -> {
+                            int removedItems = purgeMarkedItems(player);
+                            if (removedItems > 0) {
+                                plugin.getLogger()
+                                        .warning(
+                                                "Cleaned "
+                                                        + removedItems
+                                                        + " leaked GUI item(s) from "
+                                                        + player.getName()
+                                                        + "'s inventory.");
+                                player.updateInventory();
+                            }
+                        },
+                        null,
+                        10L);
     }
 
     @EventHandler
@@ -107,16 +113,17 @@ public class MenuListener implements Listener {
 
         Player player = (Player) event.getPlayer();
         if (purgeMarkedItems(player) > 0) {
-            player.getScheduler().runDelayed(plugin, scheduledTask -> player.updateInventory(), null, 1L);
+            player.getScheduler()
+                    .runDelayed(plugin, scheduledTask -> player.updateInventory(), null, 1L);
         }
     }
 
-    /**
-     * Helper to check if an item carries the AliienCore GUI marker.
-     */
+    /** Helper to check if an item carries the AliienCore GUI marker. */
     private boolean isMarked(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;
-        return item.getItemMeta().getPersistentDataContainer().has(AliienGUI.GUI_MARKER, PersistentDataType.BYTE);
+        return item.getItemMeta()
+                .getPersistentDataContainer()
+                .has(AliienGUI.GUI_MARKER, PersistentDataType.BYTE);
     }
 
     private int purgeMarkedItems(Player player) {

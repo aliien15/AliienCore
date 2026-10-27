@@ -38,7 +38,7 @@ public void onEnable() {
     AliienCore.init(this);
 
     // Option B: Selectively initialize (enableMenus, enableDatabase, enableChatPrompts)
-    AliienCore.init(this, true, false, true); 
+    AliienCore.init(this, true, false, true);
 }
 ```
 
@@ -73,13 +73,13 @@ import com.aliiensmp.core.input.chat.ChatPrompt;
 
 public void promptPlayer(Player player) {
     MessageUtils.send(player, Settings.PREFIX, "Type your reason in chat, or type 'cancel' to abort.");
-    
+
     // Starts a prompt with a 1200 tick (60 second) timeout
-    ChatPrompt.startPrompt(player, 1200L, 
+    ChatPrompt.startPrompt(player, 1200L,
         input -> {
             // Success callback (Executes off the main thread from AsyncChatEvent)
             MessageUtils.send(player, Settings.PREFIX, "You typed: " + input);
-        }, 
+        },
         () -> {
             // Cancel/Timeout callback
             MessageUtils.send(player, Settings.PREFIX, "<red>Action cancelled or timed out.");
@@ -96,7 +96,7 @@ import com.aliiensmp.core.config.ConfigManager;
 import dev.dejvokep.boostedyaml.YamlDocument;
 
 public class Settings {
-    
+
     @Key("messages.prefix")
     public static String PREFIX;
 
@@ -173,11 +173,11 @@ public void openMenu(Player player) {
     menu.setItem(13, sword.buildClickable(event -> {
         player.getInventory().addItem(new ItemStack(Material.DIAMOND_SWORD));
         player.closeInventory();
-        
+
         // Using SoundUtils and MessageUtils
         CustomSound sound = SoundUtils.parse("ENTITY_EXPERIENCE_ORB_PICKUP:1.0:1.0");
         sound.play(player);
-        
+
         MessageUtils.send(player, Settings.PREFIX, "<green>You claimed your sword!");
     }));
 

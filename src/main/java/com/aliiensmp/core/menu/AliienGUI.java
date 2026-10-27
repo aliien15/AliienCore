@@ -2,7 +2,9 @@ package com.aliiensmp.core.menu;
 
 import com.aliiensmp.core.utils.ColorUtils;
 import com.aliiensmp.core.utils.DebugUtils;
+
 import net.kyori.adventure.text.Component;
+
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -18,15 +20,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.logging.Level;
 
-/**
- * The primary builder for creating interactive menus within the AliienCore framework.
- */
+/** The primary builder for creating interactive menus within the AliienCore framework. */
 public class AliienGUI {
 
-    protected static final @NotNull NamespacedKey GUI_MARKER = Objects.requireNonNull(
-            NamespacedKey.fromString("aliiencore:gui_item"),
-            "Unable to create the AliienCore GUI marker key."
-    );
+    protected static final @NotNull NamespacedKey GUI_MARKER =
+            Objects.requireNonNull(
+                    NamespacedKey.fromString("aliiencore:gui_item"),
+                    "Unable to create the AliienCore GUI marker key.");
 
     private final @NotNull String title;
     private final int rows;
@@ -100,7 +100,10 @@ public class AliienGUI {
      */
     public void setItem(int slot, @NotNull ClickableItem item) {
         if (isInvalidSlot(slot)) {
-            DebugUtils.send(Level.WARNING, "An item was ignored due to an invalid slot: {0}", String.valueOf(slot));
+            DebugUtils.send(
+                    Level.WARNING,
+                    "An item was ignored due to an invalid slot: {0}",
+                    String.valueOf(slot));
             return;
         }
         items.put(slot, item);
@@ -123,9 +126,9 @@ public class AliienGUI {
      *
      * @param slots slots to set the item
      * @param item the item to set
-     * @ensures The {@link ItemStack} item will be turned into a {@link ClickableItem} that has
-     *      no action. If you want this item to have any action, you should turn it into a {@link ClickableItem}
-     *      before passing it through this method.
+     * @ensures The {@link ItemStack} item will be turned into a {@link ClickableItem} that has no
+     *     action. If you want this item to have any action, you should turn it into a {@link
+     *     ClickableItem} before passing it through this method.
      */
     public void setItem(@NotNull Collection<Integer> slots, @NotNull ItemStack item) {
         for (int slot : slots) {
@@ -134,62 +137,80 @@ public class AliienGUI {
     }
 
     /**
-     * Sets a {@link List} of {@link ClickableItem}s in a set of slots, skipping/limitting the items based on
-     * the current page that we are at
+     * Sets a {@link List} of {@link ClickableItem}s in a set of slots, skipping/limitting the items
+     * based on the current page that we are at
      *
      * @param slots the list of slots to fill
      * @param items the list of items to fill
-     * @param requestedPage the current page of the menu, which will help define how many items to skip and to limit
-     * @ensures if {@code items.length() < slots.length()} then the remaining slots will just remain empty. The method will
-     * also sanitize the {@code requestedPage}, ensuring {@code 1 <= requestedPage <= totalPages} via {@link #getTotalPages}.
+     * @param requestedPage the current page of the menu, which will help define how many items to
+     *     skip and to limit
+     * @ensures if {@code items.length() < slots.length()} then the remaining slots will just remain
+     *     empty. The method will also sanitize the {@code requestedPage}, ensuring {@code 1 <=
+     *     requestedPage <= totalPages} via {@link #getTotalPages}.
      */
-    public void setItems(@NotNull List<Integer> slots, @NotNull List<ClickableItem> items, int requestedPage) {
+    public void setItems(
+            @NotNull List<Integer> slots, @NotNull List<ClickableItem> items, int requestedPage) {
         setItems(slots, items, requestedPage, Function.identity());
     }
 
     /**
-     * Sets a {@link List} of {@link ClickableItem}s in a set of slots, skipping/limitting the items based on
-     * the current page that we are at. This method also received an action, which is only useful if you want the different items
-     * to execute different things depending on the user's permission, status or any type of data.
+     * Sets a {@link List} of {@link ClickableItem}s in a set of slots, skipping/limitting the items
+     * based on the current page that we are at. This method also received an action, which is only
+     * useful if you want the different items to execute different things depending on the user's
+     * permission, status or any type of data.
      *
      * @param slots the list of slots to fill
      * @param items the list of items to fill
      * @param action the action to be executed by the item
-     * @param currentPage the current page of the menu, which will help define how many items to skip and to limit
-     * @ensures if {@code items.length() < slots.length()} then the remaining slots will just remain empty
+     * @param currentPage the current page of the menu, which will help define how many items to
+     *     skip and to limit
+     * @ensures if {@code items.length() < slots.length()} then the remaining slots will just remain
+     *     empty
      */
-    public void setItems(@NotNull List<Integer> slots, @NotNull List<ItemStack> items, Consumer<InventoryClickEvent> action, int currentPage) {
+    public void setItems(
+            @NotNull List<Integer> slots,
+            @NotNull List<ItemStack> items,
+            Consumer<InventoryClickEvent> action,
+            int currentPage) {
         setItems(slots, items, currentPage, item -> ClickableItem.of(item, action));
     }
 
     /**
-     * Sets a {@link List} of items in a set of slots, skipping/limitting the items based on
-     * the current page that we are at. This method also receives a function, which will turns your list
-     * of any type you want into a {@link ClickableItem} to place in the GUI. This is useful if you want to, for
-     * example, display items differently depending on permissions or states.
+     * Sets a {@link List} of items in a set of slots, skipping/limitting the items based on the
+     * current page that we are at. This method also receives a function, which will turns your list
+     * of any type you want into a {@link ClickableItem} to place in the GUI. This is useful if you
+     * want to, for example, display items differently depending on permissions or states.
      *
      * @param slots the list of slots to fill
      * @param entries the list of items to fill
-     * @param requestedPage the current page of the menu, which will help define how many items to skip and to limit
-     * @param itemFactory the function that will turn your list of objects into {@link ClickableItem}
+     * @param requestedPage the current page of the menu, which will help define how many items to
+     *     skip and to limit
+     * @param itemFactory the function that will turn your list of objects into {@link
+     *     ClickableItem}
      * @param <T> the type of the items you are passing
-     * @ensures if {@code entries.length() < slots.length()} then the remaining slots will just remain empty. The method will
-     * also sanitize the {@code requestedPage}, ensuring {@code 1 <= requestedPage <= totalPages} via {@link #getTotalPages}.
+     * @ensures if {@code entries.length() < slots.length()} then the remaining slots will just
+     *     remain empty. The method will also sanitize the {@code requestedPage}, ensuring {@code 1
+     *     <= requestedPage <= totalPages} via {@link #getTotalPages}.
      */
-    public <T> void setItems(@NotNull List<Integer> slots, @NotNull List<T> entries, int requestedPage, @NotNull Function<? super T, ClickableItem> itemFactory) {
+    public <T> void setItems(
+            @NotNull List<Integer> slots,
+            @NotNull List<T> entries,
+            int requestedPage,
+            @NotNull Function<? super T, ClickableItem> itemFactory) {
         if (slots.isEmpty() || entries.isEmpty()) {
-            DebugUtils.send(Level.WARNING, "A menu has received an empty list of either slots and/or items to set in the GUI.");
+            DebugUtils.send(
+                    Level.WARNING,
+                    "A menu has received an empty list of either slots and/or items to set in the"
+                            + " GUI.");
             return;
         }
 
-        final int currentPage = sanitizePage(requestedPage, getTotalPages(slots.size(), entries.size()));
+        final int currentPage =
+                sanitizePage(requestedPage, getTotalPages(slots.size(), entries.size()));
         final int itemsPerPage = slots.size();
         final int itemsToSkip = (currentPage - 1) * itemsPerPage;
-        List<ClickableItem> itemsToPlace = entries.stream()
-                .skip(itemsToSkip)
-                .limit(itemsPerPage)
-                .map(itemFactory)
-                .toList();
+        List<ClickableItem> itemsToPlace =
+                entries.stream().skip(itemsToSkip).limit(itemsPerPage).map(itemFactory).toList();
 
         for (int i = 0; i < itemsToPlace.size(); i++) {
             setItem(slots.get(i), itemsToPlace.get(i));
@@ -197,9 +218,9 @@ public class AliienGUI {
     }
 
     /**
-     * Fills all empty slots/slots that don't have any item with a {@link ItemStack} item
-     * The item will be converted to a {@link ClickableItem} with no action/empty, if you want it
-     * to execute any action convert it to a {@link ClickableItem} beforehand.
+     * Fills all empty slots/slots that don't have any item with a {@link ItemStack} item The item
+     * will be converted to a {@link ClickableItem} with no action/empty, if you want it to execute
+     * any action convert it to a {@link ClickableItem} beforehand.
      *
      * @param item item to fill the empty slots with
      */
@@ -224,9 +245,9 @@ public class AliienGUI {
 
     /**
      * Calculates the highest page your menu will have to go to hold all the items you want based on
-     * the amount of slots you are using for a specific list of items and the total number of items you want
-     * to distribute through those slots. Ideally you should use the .length or .size of whatever data structure you
-     * are using to store your slots and items.
+     * the amount of slots you are using for a specific list of items and the total number of items
+     * you want to distribute through those slots. Ideally you should use the .length or .size of
+     * whatever data structure you are using to store your slots and items.
      *
      * @param numberOfSlotsPerPage the number of slots that will be used to fill the items per page
      * @param totalNumberOfItem the total number of items
@@ -234,12 +255,15 @@ public class AliienGUI {
      * @ensures {@code \result > 0}
      */
     public int getTotalPages(int numberOfSlotsPerPage, int totalNumberOfItem) {
-        return (numberOfSlotsPerPage <= 0) ? 1 : Math.max(1, (totalNumberOfItem + numberOfSlotsPerPage - 1) / numberOfSlotsPerPage);
+        return (numberOfSlotsPerPage <= 0)
+                ? 1
+                : Math.max(
+                        1, (totalNumberOfItem + numberOfSlotsPerPage - 1) / numberOfSlotsPerPage);
     }
 
     /**
-     * Fixes up the {@code requestedPage} in case of it being either less than 1 (by setting it to 1) or if it is
-     * more than {@code totalPages}
+     * Fixes up the {@code requestedPage} in case of it being either less than 1 (by setting it to
+     * 1) or if it is more than {@code totalPages}
      *
      * @param requestedPage the page being requested
      * @param totalPages the total number of pages being used
@@ -252,6 +276,7 @@ public class AliienGUI {
 
     /**
      * Filters out invalid slots, which means slots that are out of the menu's grid
+     *
      * @param slots all the slots to filter
      */
     public void filterInvalidSlots(@NotNull Collection<Integer> slots) {

@@ -12,7 +12,8 @@ public class DurationUtils {
     private static final Pattern WHITESPACE_PATTERN = Pattern.compile("\\s+");
 
     /**
-     * Converts a String input of a time (such as, for example, "3d 12h 7m 4s") into a Duration object
+     * Converts a String input of a time (such as, for example, "3d 12h 7m 4s") into a Duration
+     * object
      *
      * @param input the String input to convert
      * @return the input converted
@@ -46,22 +47,22 @@ public class DurationUtils {
     }
 
     /**
-     * Enum to choose what type of style you want when formatting a duration into a
-     * String using the {@code format(Duration duration)} method.
+     * Enum to choose what type of style you want when formatting a duration into a String using the
+     * {@code format(Duration duration)} method.
      *
-     * Examples with 2 hours and 30 minutes:
-     * SHORT - 2h 30m
-     * LONG - 2 Hours 30 Minutes
-     * CLOCK - 02:30:00
+     * <p>Examples with 2 hours and 30 minutes: SHORT - 2h 30m LONG - 2 Hours 30 Minutes CLOCK -
+     * 02:30:00
      */
     public enum Style {
-        SHORT, LONG, CLOCK
+        SHORT,
+        LONG,
+        CLOCK
     }
 
     /**
-     * Turns a duration object into a String input (such as, for example, "3d 12h 7m 4s")
-     * This method uses the {@code Style.SHORT} style. You can set whatever style you want
-     * by using the method {@code format(Duration duration, Style style)}
+     * Turns a duration object into a String input (such as, for example, "3d 12h 7m 4s") This
+     * method uses the {@code Style.SHORT} style. You can set whatever style you want by using the
+     * method {@code format(Duration duration, Style style)}
      *
      * @param duration the duration to be converted
      * @return a duration object, or "Permanent" if the duration is null, zero, or negative.
@@ -99,8 +100,10 @@ public class DurationUtils {
             case LONG -> {
                 if (days > 0) builder.append(days).append(days == 1 ? " Day " : " Days ");
                 if (hours > 0) builder.append(hours).append(hours == 1 ? " Hour " : " Hours ");
-                if (minutes > 0) builder.append(minutes).append(minutes == 1 ? " Minute " : " Minutes ");
-                if (seconds > 0) builder.append(seconds).append(seconds == 1 ? " Second " : " Seconds ");
+                if (minutes > 0)
+                    builder.append(minutes).append(minutes == 1 ? " Minute " : " Minutes ");
+                if (seconds > 0)
+                    builder.append(seconds).append(seconds == 1 ? " Second " : " Seconds ");
             }
             case CLOCK -> {
                 appendClock(builder, days, hours, minutes, seconds);
@@ -110,10 +113,9 @@ public class DurationUtils {
         return builder.toString().trim();
     }
 
-    /**
-     * Appends every meaningful clock unit, keeping zero placeholders after the largest unit.
-     */
-    private static void appendClock(StringBuilder builder, long days, int hours, int minutes, int seconds) {
+    /** Appends every meaningful clock unit, keeping zero placeholders after the largest unit. */
+    private static void appendClock(
+            StringBuilder builder, long days, int hours, int minutes, int seconds) {
         if (days > 0) {
             appendClockUnit(builder, days);
             appendClockUnit(builder, hours);
@@ -139,9 +141,9 @@ public class DurationUtils {
     }
 
     /**
-     * Appends a time unit into a string that can be used under the {@code CLOCK} format.
-     * If the number of the time unit is greater than 9 it will just append it normally,
-     * otherwise it will append a 0 to the left of the number.
+     * Appends a time unit into a string that can be used under the {@code CLOCK} format. If the
+     * number of the time unit is greater than 9 it will just append it normally, otherwise it will
+     * append a 0 to the left of the number.
      *
      * @param builder The current clock string.
      * @param time Time to be appended.
@@ -154,8 +156,7 @@ public class DurationUtils {
     }
 
     /**
-     * Converts a Duration object into Minecraft server ticks.
-     * (20 ticks = 1 second)
+     * Converts a Duration object into Minecraft server ticks. (20 ticks = 1 second)
      *
      * @param duration the duration to be converted
      * @return the total amount of ticks, or 0 if the duration is null/negative.

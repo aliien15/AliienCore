@@ -6,10 +6,11 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Represents a cached, playable sound loaded from a configuration file.
- * Natively supports both Bukkit Vanilla Sound enums and Custom Resource Pack sound strings.
+ * Represents a cached, playable sound loaded from a configuration file. Natively supports both
+ * Bukkit Vanilla Sound enums and Custom Resource Pack sound strings.
  */
-public record CustomSound(String soundKey, @Nullable Sound vanillaSound, float volume, float pitch) {
+public record CustomSound(
+        String soundKey, @Nullable Sound vanillaSound, float volume, float pitch) {
 
     /**
      * Plays this specific sound directly to a {@link Player}.

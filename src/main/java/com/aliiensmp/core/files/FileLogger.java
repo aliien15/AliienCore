@@ -1,6 +1,7 @@
 package com.aliiensmp.core.files;
 
 import com.aliiensmp.core.utils.DebugUtils;
+
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
 public class FileLogger {
-    private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER =
+            DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
     private static final ConcurrentHashMap<String, Object> FILE_LOCKS = new ConcurrentHashMap<>();
     private Path folderPath;
     private String fileName = "logs.log";
@@ -30,8 +32,8 @@ public class FileLogger {
 
     /**
      * Sets the path to where the FileLogger will attempt to write to. By default, this is set to
-     * the path of the plugin used to initialize this instance, so you do not need to use this unless
-     * you want to use some other specific path.
+     * the path of the plugin used to initialize this instance, so you do not need to use this
+     * unless you want to use some other specific path.
      *
      * @param folderPath the path where the FileLogger will write to.
      * @return this instance for chaining.
@@ -43,12 +45,13 @@ public class FileLogger {
 
     /**
      * Sets the path to where the FileLogger will attempt to write to. By default, this is set to
-     * the path of the plugin used to initialize this instance, so you do not need to use this unless
-     * you want to use some other specific path.
+     * the path of the plugin used to initialize this instance, so you do not need to use this
+     * unless you want to use some other specific path.
      *
      * @param folderPath the path where the FileLogger will write to.
      * @return this instance for chaining.
-     * @throws InvalidPathException if {@code folderPath} cannot be converted to a {@link Path}/is in an invalid format.
+     * @throws InvalidPathException if {@code folderPath} cannot be converted to a {@link Path}/is
+     *     in an invalid format.
      */
     public FileLogger setPath(@NotNull String folderPath) throws InvalidPathException {
         return this.setPath(Path.of(folderPath));
@@ -72,8 +75,8 @@ public class FileLogger {
     }
 
     /**
-     * Sets the enabled status, useful if you wanna have this option toggled but don't
-     * want to have to manually write if statements everywhere.
+     * Sets the enabled status, useful if you wanna have this option toggled but don't want to have
+     * to manually write if statements everywhere.
      *
      * @param enabled the new enabled status.
      * @return this instance for chaining.
@@ -84,8 +87,8 @@ public class FileLogger {
     }
 
     /**
-     * Toggles the enabled status, useful if you wanna have this option toggled but don't
-     * want to have to manually write if statements everywhere.
+     * Toggles the enabled status, useful if you wanna have this option toggled but don't want to
+     * have to manually write if statements everywhere.
      *
      * @return the new toggle status after it being toggled
      */
@@ -95,8 +98,9 @@ public class FileLogger {
     }
 
     /**
-     * Sends a logging message to the desired file (set before calling this method), respecting the enabled
-     * status. This method is run async through a {@link CompletableFuture#runAsync(Runnable)}
+     * Sends a logging message to the desired file (set before calling this method), respecting the
+     * enabled status. This method is run async through a {@link
+     * CompletableFuture#runAsync(Runnable)}
      *
      * @param message the message to log into the file.
      */
@@ -105,28 +109,40 @@ public class FileLogger {
             return;
         }
 
-        CompletableFuture.runAsync(() -> {
-            final Path targetFile = this.folderPath.resolve(this.fileName);
-            final String absolutePath = targetFile.toAbsolutePath().toString();
-            final Object fileLock = FILE_LOCKS.computeIfAbsent(absolutePath, k -> new Object());
+        CompletableFuture.runAsync(
+                () -> {
+                    final Path targetFile = this.folderPath.resolve(this.fileName);
+                    final String absolutePath = targetFile.toAbsolutePath().toString();
+                    final Object fileLock =
+                            FILE_LOCKS.computeIfAbsent(absolutePath, k -> new Object());
 
-            synchronized (fileLock) {
-                try {
-                    if (!Files.exists(this.folderPath)) {
-                        Files.createDirectories(this.folderPath);
+                    synchronized (fileLock) {
+                        try {
+                            if (!Files.exists(this.folderPath)) {
+                                Files.createDirectories(this.folderPath);
+                            }
+
+                            final String timeStamp =
+                                    LocalDateTime.now().format(TIMESTAMP_FORMATTER);
+                            final String formattedMessage =
+                                    "[" + timeStamp + "] " + message + System.lineSeparator();
+
+                            Files.writeString(
+                                    targetFile,
+                                    formattedMessage,
+                                    StandardCharsets.UTF_8,
+                                    StandardOpenOption.CREATE,
+                                    StandardOpenOption.APPEND);
+                        } catch (IOException e) {
+                            DebugUtils.send(
+                                    Level.SEVERE,
+                                    "An error occurred while trying to write to %file%: %error%",
+                                    "%file%",
+                                    this.fileName,
+                                    "%error%",
+                                    e.getMessage());
+                        }
                     }
-
-                    final String timeStamp = LocalDateTime.now().format(TIMESTAMP_FORMATTER);
-                    final String formattedMessage = "[" + timeStamp + "] " + message + System.lineSeparator();
-
-                    Files.writeString(targetFile, formattedMessage, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-                } catch (IOException e) {
-                    DebugUtils.send(Level.SEVERE, "An error occurred while trying to write to %file%: %error%",
-                            "%file%", this.fileName,
-                            "%error%", e.getMessage()
-                    );
-                }
-            }
-        });
+                });
     }
 }

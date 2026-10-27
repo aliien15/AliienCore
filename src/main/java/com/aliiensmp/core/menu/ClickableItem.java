@@ -2,11 +2,11 @@ package com.aliiensmp.core.menu;
 
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
+
 import java.util.function.Consumer;
 
 /**
- * Represents an immutable wrapper for an {@link ItemStack} and its
- * associated click logic.
+ * Represents an immutable wrapper for an {@link ItemStack} and its associated click logic.
  *
  * @param itemStack The visual item to display in the GUI.
  * @param action The logic to execute when a player clicks this item.

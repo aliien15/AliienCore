@@ -1,6 +1,7 @@
 package com.aliiensmp.core.utils.updatechecker;
 
 import net.kyori.adventure.text.Component;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -22,12 +23,17 @@ public class UpdateNotifyListener implements Listener {
     /**
      * Creates a generic Update Notify Listener for any plugin.
      *
-     * @param plugin          The plugin instance.
-     * @param gistUrl         The raw URL to the version string.
-     * @param permissionNode  The permission required to see the update message.
-     * @param messageSupplier A supplier that fetches the update message (so it updates on config reloads).
+     * @param plugin The plugin instance.
+     * @param gistUrl The raw URL to the version string.
+     * @param permissionNode The permission required to see the update message.
+     * @param messageSupplier A supplier that fetches the update message (so it updates on config
+     *     reloads).
      */
-    public UpdateNotifyListener(Plugin plugin, String gistUrl, String permissionNode, Supplier<Component> messageSupplier) {
+    public UpdateNotifyListener(
+            Plugin plugin,
+            String gistUrl,
+            String permissionNode,
+            Supplier<Component> messageSupplier) {
         this.plugin = plugin;
         this.permissionNode = permissionNode;
         this.messageSupplier = messageSupplier;
@@ -59,11 +65,14 @@ public class UpdateNotifyListener implements Listener {
             return;
         }
 
-        updateChecker.fetchVersion().whenComplete((version, throwable) -> {
-            if (version != null) {
-                version.ifPresent(value -> latestVersion = value);
-            }
-            versionCheckInFlight.set(false);
-        });
+        updateChecker
+                .fetchVersion()
+                .whenComplete(
+                        (version, throwable) -> {
+                            if (version != null) {
+                                version.ifPresent(value -> latestVersion = value);
+                            }
+                            versionCheckInFlight.set(false);
+                        });
     }
 }

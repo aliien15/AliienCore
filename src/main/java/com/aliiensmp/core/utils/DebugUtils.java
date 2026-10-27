@@ -12,9 +12,9 @@ public class DebugUtils {
 
     /**
      * Sets the plugin instance to send out the debug messages to the console
-     * <p>
-     * <b>INTERNAL USE ONLY:</b> Called by {@link AliienCore#init()}.
-     * Plugin code should not call this directly.
+     *
+     * <p><b>INTERNAL USE ONLY:</b> Called by {@link AliienCore#init()}. Plugin code should not call
+     * this directly.
      *
      * @param javaPlugin the plugin instance
      * @requires {@code javaPlugin != null}
@@ -34,7 +34,8 @@ public class DebugUtils {
     }
 
     /**
-     * Toggles the debug mode without knowing the currrent state of the toggle (if it is already on or not)
+     * Toggles the debug mode without knowing the currrent state of the toggle (if it is already on
+     * or not)
      *
      * @return true if it gets toggled on, false if it gets disabled
      */
@@ -48,7 +49,8 @@ public class DebugUtils {
      *
      * @param message the message that will be sent
      * @param placeholders a list of placeholders to replace in the message
-     * @requires .setPlugin() must be used correctly with a non-null parameter, and all parameters here should not be null
+     * @requires .setPlugin() must be used correctly with a non-null parameter, and all parameters
+     *     here should not be null
      */
     public static void send(String message, String... placeholders) {
         send(Level.INFO, message, placeholders);
@@ -60,7 +62,8 @@ public class DebugUtils {
      * @param loggingLevel the logging level that will be displayed in the console
      * @param message the message that will be sent
      * @param placeholders a list of placeholders to replace in the message
-     * @requires .setPlugin() must be used correctly with a non-null parameter, and all parameters here should not be null
+     * @requires .setPlugin() must be used correctly with a non-null parameter, and all parameters
+     *     here should not be null
      */
     public static void send(Level loggingLevel, String message, String... placeholders) {
         if (!isEnabled) {
@@ -73,18 +76,16 @@ public class DebugUtils {
 
     /**
      * Shuts down debug utils
-     * <p>
-     * <b>INTERNAL USE ONLY:</b> Called by {@link AliienCore#shutdown()}.
-     * Plugin code should not call this directly.
+     *
+     * <p><b>INTERNAL USE ONLY:</b> Called by {@link AliienCore#shutdown()}. Plugin code should not
+     * call this directly.
      */
     @ApiStatus.Internal
     public static void shutdown() {
         plugin = null;
     }
 
-    /**
-     * Internal helper to process local key-value vararg placeholders.
-     */
+    /** Internal helper to process local key-value vararg placeholders. */
     private static String applyPlaceholders(String text, String... placeholders) {
         if (placeholders == null || placeholders.length == 0) return text;
 

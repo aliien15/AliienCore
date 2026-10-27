@@ -7,12 +7,12 @@ import java.util.Locale;
 
 public class SoundUtils {
 
-    private SoundUtils() {
-    }
+    private SoundUtils() {}
 
     /**
-     * Parses a configuration string into a playable CustomSound.
-     * Expected format: "SOUND_NAME:VOLUME:PITCH" (e.g., "BLOCK_NOTE_BLOCK_PLING:1.0:2.0" or "custom.aliien.click:1.0:1.0")
+     * Parses a configuration string into a playable CustomSound. Expected format:
+     * "SOUND_NAME:VOLUME:PITCH" (e.g., "BLOCK_NOTE_BLOCK_PLING:1.0:2.0" or
+     * "custom.aliien.click:1.0:1.0")
      *
      * @param format The raw string from the config file.
      * @return A parsed CustomSound, or null if the format is invalid or "none".
@@ -71,7 +71,8 @@ public class SoundUtils {
             return new ParsedSound(beforeLastValue, lastValue, pitch);
         }
 
-        return new ParsedSound(beforeLastValue.substring(0, secondLastColon), volumeValue, lastValue);
+        return new ParsedSound(
+                beforeLastValue.substring(0, secondLastColon), volumeValue, lastValue);
     }
 
     private static Float tryParseFloat(String value) {
@@ -82,6 +83,5 @@ public class SoundUtils {
         }
     }
 
-    private record ParsedSound(String soundKey, float volume, float pitch) {
-    }
+    private record ParsedSound(String soundKey, float volume, float pitch) {}
 }

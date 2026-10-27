@@ -5,8 +5,8 @@ import org.bukkit.inventory.InventoryHolder;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A custom {@link InventoryHolder} used to identify and track
- * {@link AliienGUI} instances across the server.
+ * A custom {@link InventoryHolder} used to identify and track {@link AliienGUI} instances across
+ * the server.
  */
 public class MenuHolder implements InventoryHolder {
     private final AliienGUI gui;

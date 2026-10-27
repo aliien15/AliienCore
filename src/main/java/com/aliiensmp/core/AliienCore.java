@@ -5,14 +5,14 @@ import com.aliiensmp.core.input.chat.ChatPrompt;
 import com.aliiensmp.core.input.chat.ChatPromptListeners;
 import com.aliiensmp.core.menu.MenuListener;
 import com.aliiensmp.core.utils.DebugUtils;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
 
 /**
- * The shaded initializer for AliienCore.
- * This class handles the setup of global systems (like the GUI engine)
- * using the host plugin's instance.
+ * The shaded initializer for AliienCore. This class handles the setup of global systems (like the
+ * GUI engine) using the host plugin's instance.
  */
 public final class AliienCore {
 
@@ -33,8 +33,8 @@ public final class AliienCore {
     }
 
     /**
-     * Initializes the AliienCore framework with all features enabled.
-     * Run this in your plugin's onEnable() method.
+     * Initializes the AliienCore framework with all features enabled. Run this in your plugin's
+     * onEnable() method.
      *
      * @param plugin The instance of the plugin using the library.
      */
@@ -50,18 +50,26 @@ public final class AliienCore {
      * @param enableDatabase Whether to initialize the DatabaseManager pool.
      * @param enableChatPrompts Whether to register the ChatPrompt system listeners.
      */
-    public static synchronized void init(JavaPlugin plugin, boolean enableMenus, boolean enableDatabase, boolean enableChatPrompts) {
+    public static synchronized void init(
+            JavaPlugin plugin,
+            boolean enableMenus,
+            boolean enableDatabase,
+            boolean enableChatPrompts) {
         Objects.requireNonNull(plugin, "plugin");
 
         if (!initialized) {
 
             if (enableMenus) {
-                plugin.getServer().getPluginManager().registerEvents(new MenuListener(plugin), plugin);
+                plugin.getServer()
+                        .getPluginManager()
+                        .registerEvents(new MenuListener(plugin), plugin);
             }
 
             if (enableChatPrompts) {
                 ChatPrompt.init(plugin);
-                plugin.getServer().getPluginManager().registerEvents(new ChatPromptListeners(), plugin);
+                plugin.getServer()
+                        .getPluginManager()
+                        .registerEvents(new ChatPromptListeners(), plugin);
             }
 
             initialized = true;

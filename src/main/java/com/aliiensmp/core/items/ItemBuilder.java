@@ -2,7 +2,9 @@ package com.aliiensmp.core.items;
 
 import com.aliiensmp.core.menu.ClickableItem;
 import com.aliiensmp.core.utils.ColorUtils;
+
 import net.kyori.adventure.text.Component;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -21,14 +23,10 @@ import java.util.function.Consumer;
 
 public class ItemBuilder {
 
-    /**
-     * The physical ItemStack being constructed.
-     */
+    /** The physical ItemStack being constructed. */
     private final ItemStack item;
 
-    /**
-     * The ItemMeta containing the item's display and behavior data.
-     */
+    /** The ItemMeta containing the item's display and behavior data. */
     private final ItemMeta meta;
 
     /**
@@ -45,7 +43,7 @@ public class ItemBuilder {
      * Constructs a new ItemBuilder with the specified material and stack size.
      *
      * @param material The Material of the item.
-     * @param amount   The amount of items in this stack.
+     * @param amount The amount of items in this stack.
      */
     public ItemBuilder(@NotNull Material material, int amount) {
         this.item = new ItemStack(material, amount);
@@ -64,8 +62,7 @@ public class ItemBuilder {
     }
 
     /**
-     * Sets the display name using a raw String.
-     * Automatically parses colors via ColorUtils.
+     * Sets the display name using a raw String. Automatically parses colors via ColorUtils.
      *
      * @param name The name in a string format
      * @return The current ItemBuilder instance for chaining.
@@ -88,8 +85,7 @@ public class ItemBuilder {
     }
 
     /**
-     * Sets the lore using a list of raw Strings.
-     * Automatically parses colors via ColorUtils.
+     * Sets the lore using a list of raw Strings. Automatically parses colors via ColorUtils.
      *
      * @param lore The list of Strings to set as the item's lore.
      * @return The current ItemBuilder instance for chaining.
@@ -125,20 +121,22 @@ public class ItemBuilder {
         }
 
         List<Component> existingLore = this.meta.lore();
-        List<Component> lore = existingLore == null
-                ? new ArrayList<>(lines.size())
-                : new ArrayList<>(existingLore.size() + lines.size());
+        List<Component> lore =
+                existingLore == null
+                        ? new ArrayList<>(lines.size())
+                        : new ArrayList<>(existingLore.size() + lines.size());
 
         if (existingLore != null) {
             lore.addAll(existingLore);
         }
 
         int initialSize = lore.size();
-        lines.forEach(line -> {
-            if (line != null) {
-                lore.add(line);
-            }
-        });
+        lines.forEach(
+                line -> {
+                    if (line != null) {
+                        lore.add(line);
+                    }
+                });
 
         if (lore.size() == initialSize) {
             return this;
@@ -149,8 +147,8 @@ public class ItemBuilder {
     }
 
     /**
-     * Appends a single raw string line to the bottom of the item's existing lore.
-     * Automatically parses colors via ColorUtils.
+     * Appends a single raw string line to the bottom of the item's existing lore. Automatically
+     * parses colors via ColorUtils.
      *
      * @param line The String to append.
      * @return The current ItemBuilder instance for chaining.
@@ -160,8 +158,8 @@ public class ItemBuilder {
     }
 
     /**
-     * Appends multiple raw string lines to the bottom of the item's existing lore.
-     * Automatically parses colors via ColorUtils.
+     * Appends multiple raw string lines to the bottom of the item's existing lore. Automatically
+     * parses colors via ColorUtils.
      *
      * @param lines The Strings to append.
      * @return The current ItemBuilder instance for chaining.
@@ -172,8 +170,8 @@ public class ItemBuilder {
     }
 
     /**
-     * Sets the custom model data for the item (used for resource packs).
-     * If the ID is invalid (<=0), no changes are applied.
+     * Sets the custom model data for the item (used for resource packs). If the ID is invalid
+     * (<=0), no changes are applied.
      *
      * @param modelData The custom model ID to apply.
      * @return The current ItemBuilder instance for chaining.
@@ -195,8 +193,8 @@ public class ItemBuilder {
     }
 
     /**
-     * Toggles a glowing effect on the item.
-     * If true, it applies an Unbreaking I enchantment and hides the enchantment flags.
+     * Toggles a glowing effect on the item. If true, it applies an Unbreaking I enchantment and
+     * hides the enchantment flags.
      *
      * @param glow True to make the item glow, false to do nothing.
      * @return The current ItemBuilder instance for chaining.
@@ -210,27 +208,30 @@ public class ItemBuilder {
     }
 
     /**
-     * Attaches hidden string data to the item using the PersistentDataContainer.
-     * This acts as a secure "storage locker" for the item, allowing you to hide data
-     * (like GUI actions or rule IDs) that cannot be modified by players.
+     * Attaches hidden string data to the item using the PersistentDataContainer. This acts as a
+     * secure "storage locker" for the item, allowing you to hide data (like GUI actions or rule
+     * IDs) that cannot be modified by players.
      *
      * @param plugin The plugin instance. This generates the "Namespace" (the owner of the locker),
-     * ensuring your data never conflicts with other plugins.
-     * @param key    The identifier or label for this specific piece of data (e.g., "gui_action").
-     * @param value  The actual data string you want to store (e.g., "ban_player").
-     * @return       The current ItemBuilder instance for chaining.
+     *     ensuring your data never conflicts with other plugins.
+     * @param key The identifier or label for this specific piece of data (e.g., "gui_action").
+     * @param value The actual data string you want to store (e.g., "ban_player").
+     * @return The current ItemBuilder instance for chaining.
      */
-    public ItemBuilder addStringTag(@NotNull Plugin plugin, @NotNull String key, @NotNull String value) {
+    public ItemBuilder addStringTag(
+            @NotNull Plugin plugin, @NotNull String key, @NotNull String value) {
         if (this.meta != null) {
             NamespacedKey namespacedKey = new NamespacedKey(plugin, key);
-            this.meta.getPersistentDataContainer().set(namespacedKey, PersistentDataType.STRING, value);
+            this.meta
+                    .getPersistentDataContainer()
+                    .set(namespacedKey, PersistentDataType.STRING, value);
         }
         return this;
     }
 
     /**
-     * Builds the ItemStack and immediately wraps it into a ClickableItem
-     * with the specified click action for the GUI engine.
+     * Builds the ItemStack and immediately wraps it into a ClickableItem with the specified click
+     * action for the GUI engine.
      *
      * @param action The logic to execute when a player clicks this item.
      * @return A new ClickableItem ready to be placed in an AliienGUI.

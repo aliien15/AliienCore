@@ -6,6 +6,7 @@ import dev.dejvokep.boostedyaml.settings.dumper.DumperSettings;
 import dev.dejvokep.boostedyaml.settings.general.GeneralSettings;
 import dev.dejvokep.boostedyaml.settings.loader.LoaderSettings;
 import dev.dejvokep.boostedyaml.settings.updater.UpdaterSettings;
+
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,25 +21,24 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A universal utility for generating, loading, and auto-updating
- * BoostedYAML configuration files across the Aliien plugin suite.
+ * A universal utility for generating, loading, and auto-updating BoostedYAML configuration files
+ * across the Aliien plugin suite.
  */
 public class ConfigManager {
 
-    private static final GeneralSettings GENERAL_SETTINGS = GeneralSettings.builder()
-            .setUseDefaults(false)
-            .build();
-    private static final LoaderSettings LOADER_SETTINGS = LoaderSettings.builder()
-            .setAutoUpdate(true)
-            .build();
-    private static final UpdaterSettings UPDATER_SETTINGS = UpdaterSettings.builder()
-            .setKeepAll(true)
-            .setVersioning(new BasicVersioning("config-version"))
-            .build();
-    private static final Map<Class<?>, List<BoundField>> BOUND_FIELDS_CACHE = new ConcurrentHashMap<>();
+    private static final GeneralSettings GENERAL_SETTINGS =
+            GeneralSettings.builder().setUseDefaults(false).build();
+    private static final LoaderSettings LOADER_SETTINGS =
+            LoaderSettings.builder().setAutoUpdate(true).build();
+    private static final UpdaterSettings UPDATER_SETTINGS =
+            UpdaterSettings.builder()
+                    .setKeepAll(true)
+                    .setVersioning(new BasicVersioning("config-version"))
+                    .build();
+    private static final Map<Class<?>, List<BoundField>> BOUND_FIELDS_CACHE =
+            new ConcurrentHashMap<>();
 
-    private ConfigManager() {
-    }
+    private ConfigManager() {}
 
     /**
      * Loads or creates a .yml config file
@@ -48,9 +48,12 @@ public class ConfigManager {
      * @return The .yml file objects
      * @requires {@code fileName != null} and has to include the {@code .yml} extension at the end
      * @throws IOException If it fails to create a directory to the file if it didn't exist already
-     * @throws NullPointerException if you set {@code fileName} with the name of a file that does not exist within the plugin
+     * @throws NullPointerException if you set {@code fileName} with the name of a file that does
+     *     not exist within the plugin
      */
-    public static @NotNull YamlDocument loadConfig(@NotNull JavaPlugin plugin, @NotNull String fileName) throws IOException, NullPointerException {
+    public static @NotNull YamlDocument loadConfig(
+            @NotNull JavaPlugin plugin, @NotNull String fileName)
+            throws IOException, NullPointerException {
         File configFile = new File(plugin.getDataFolder(), fileName);
         File parent = configFile.getParentFile();
         if (parent != null && !parent.exists() && !parent.mkdirs() && !parent.isDirectory()) {
@@ -63,13 +66,12 @@ public class ConfigManager {
                 GENERAL_SETTINGS,
                 LOADER_SETTINGS,
                 DumperSettings.DEFAULT,
-                UPDATER_SETTINGS
-        );
+                UPDATER_SETTINGS);
     }
 
     /**
-     * Binds a YamlDocument to an object's annotated fields.
-     * Safely handles both Class definitions (for static fields) and instantiated objects.
+     * Binds a YamlDocument to an object's annotated fields. Safely handles both Class definitions
+     * (for static fields) and instantiated objects.
      *
      * @param config the config file
      * @param configInstance the config instance (or Class object)
@@ -78,9 +80,10 @@ public class ConfigManager {
         boolean needsSave = false;
 
         // Determine the target class, even if a static Class object was passed.
-        Class<?> targetClass = (configInstance instanceof Class<?>)
-                ? (Class<?>) configInstance
-                : configInstance.getClass();
+        Class<?> targetClass =
+                (configInstance instanceof Class<?>)
+                        ? (Class<?>) configInstance
+                        : configInstance.getClass();
 
         // If target is a static class, pass 'null' as the instance to the reflection methods.
         Object targetInstance = (configInstance instanceof Class<?>) ? null : configInstance;
@@ -104,13 +107,14 @@ public class ConfigManager {
         }
 
         if (needsSave) {
-            CompletableFuture.runAsync(() -> {
-                try {
-                    config.save();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+            CompletableFuture.runAsync(
+                    () -> {
+                        try {
+                            config.save();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
         }
     }
 
@@ -132,6 +136,5 @@ public class ConfigManager {
         return List.copyOf(boundFields);
     }
 
-    private record BoundField(Field field, String path) {
-    }
+    private record BoundField(Field field, String path) {}
 }
