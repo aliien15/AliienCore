@@ -5,18 +5,85 @@ on:
     branches: [main]
   push:
     branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
         with:
-          python-version: "3.x"
-
-      - name: Run pre-commit
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Run formatting and hygiene checks
         uses: pre-commit/action@v3.0.1
+
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        dependencies: [baseline, upgrades]
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: integration-password
+          MARIADB_DATABASE: aliien_test
+          MARIADB_USER: aliien
+          MARIADB_PASSWORD: integration-password
+        ports:
+          - 3307:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: integration-password
+          MYSQL_DATABASE: aliien_test
+          MYSQL_USER: aliien
+          MYSQL_PASSWORD: integration-password
+        ports:
+          - 3308:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -pintegration-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_USER: aliien
+      DB_PASSWORD: integration-password
+      MARIADB_PORT: '3307'
+      MYSQL_PORT: '3308'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Verify baseline dependencies
+        if: matrix.dependencies == 'baseline'
+        run: ./mvnw --batch-mode --no-transfer-progress -Pdatabase-integration clean verify
+      - name: Verify proposed Dependabot upgrades
+        if: matrix.dependencies == 'upgrades'
+        run: ./mvnw --batch-mode --no-transfer-progress -Pdatabase-integration,dependency-upgrades clean verify
+      - name: Upload test and coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ matrix.dependencies }}
+          path: |
+            target/surefire-reports/
+            target/failsafe-reports/
+            target/site/jacoco/
+          if-no-files-found: warn

@@ -36,10 +36,12 @@ class DurationUtilsTest {
     }
 
     @Property
-    void ticksAlwaysMultiplyBy20(@ForAll @Positive long seconds) {
+    void ticksAlwaysMultiplyBy20(
+            @ForAll @LongRange(min = 0, max = 461168601842738790L) long seconds) {
         Duration randomDuration = Duration.ofSeconds(seconds);
 
         long expectedTicks = seconds * 20;
+
         assertEquals(expectedTicks, DurationUtils.toTicks(randomDuration));
     }
 
@@ -66,5 +68,32 @@ class DurationUtilsTest {
         String clockFormat = DurationUtils.format(randomDuration, DurationUtils.Style.CLOCK);
 
         assertTrue(clockFormat.matches("^[0-9:]+$"));
+    }
+
+    @Property
+    void clockStylePreservesEverySecond(@ForAll @LongRange(min = 1, max = 31536000L) long seconds) {
+        String[] units =
+                DurationUtils.format(Duration.ofSeconds(seconds), DurationUtils.Style.CLOCK)
+                        .split(":");
+        long reconstructed = 0;
+        long[] multipliers = {1, 60, 3600, 86400};
+        for (int i = 0; i < units.length; i++) {
+            reconstructed += Long.parseLong(units[units.length - 1 - i]) * multipliers[i];
+        }
+        assertEquals(seconds, reconstructed);
+    }
+
+    @Test
+    void longStyleUsesSingularAndPluralUnitsAndNonpositiveDurationsArePermanent() {
+        assertEquals(
+                "1 Day 1 Hour 1 Minute 1 Second",
+                DurationUtils.format(Duration.ofSeconds(90061), DurationUtils.Style.LONG));
+        assertEquals(
+                "2 Days 2 Hours 2 Minutes 2 Seconds",
+                DurationUtils.format(Duration.ofSeconds(180122), DurationUtils.Style.LONG));
+        assertEquals("Permanent", DurationUtils.format(Duration.ofSeconds(-1)));
+        assertEquals(0, DurationUtils.toTicks((Duration) null));
+        assertEquals(0, DurationUtils.toTicks(Duration.ofSeconds(-1)));
+        assertEquals(1200, DurationUtils.toTicks("1m"));
     }
 }
