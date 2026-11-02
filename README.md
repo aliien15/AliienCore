@@ -187,5 +187,11 @@ public void openMenu(Player player) {
 
 ---
 
+## Building and testing
+
+Use Java 21 and `./mvnw clean verify` to run the unit, property, MockBukkit,
+H2 migration, and packaging tests with Maven 3.9.16. See [the testing guide](docs/testing.md)
+for dependency-upgrade comparisons, database integration tests, and coverage reports.
+
 ## 🤝 Contributing
 Pull requests are welcome! If you have a highly reusable utility class that you think belongs in the core library, feel free to open a PR. Ensure that any contributions adhere to the core philosophy: strict async compliance, Folia compatibility, and zero Bukkit boilerplate.

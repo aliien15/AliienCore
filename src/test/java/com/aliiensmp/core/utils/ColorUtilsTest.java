@@ -98,4 +98,23 @@ class ColorUtilsTest {
         assertEquals("", ColorUtils.translateLegacyFormatting(""));
         assertEquals("Just plain text", ColorUtils.translateLegacyFormatting("Just plain text"));
     }
+
+    @Property
+    void plainAlphabeticTextKeepsItsContent(
+            @ForAll @net.jqwik.api.constraints.AlphaChars String text) {
+        assertEquals(
+                text,
+                net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText()
+                        .serialize(ColorUtils.color(text)));
+    }
+
+    @Test
+    void lorePreservesOrderAndNullLinesAndReturnsImmutableList() {
+        var colored = ColorUtils.color(java.util.Arrays.asList("&cFirst", null, "Second"));
+        assertEquals(3, colored.size());
+        assertEquals(ColorUtils.color("&cFirst"), colored.get(0));
+        assertEquals(Component.empty(), colored.get(1));
+        org.junit.jupiter.api.Assertions.assertThrows(
+                UnsupportedOperationException.class, () -> colored.add(Component.empty()));
+    }
 }
