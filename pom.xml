@@ -9,7 +9,7 @@
         <java.version>21</java.version>
         <hikari.version>5.1.0</hikari.version>
         <mariadb.version>4.0.0</mariadb.version>
-        <h2.version>2.2.224</h2.version>
+        <h2.version>2.5.252</h2.version>
         <compiler.version>3.16.0</compiler.version>
         <shade.version>3.6.2</shade.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -42,7 +42,7 @@
                                 <artifactItem>
                                     <groupId>com.h2database</groupId>
                                     <artifactId>h2</artifactId>
-                                    <version>2.2.224</version>
+                                    <version>2.5.252</version>
                                     <type>jar</type>
                                     <outputDirectory>${project.build.directory}/migration</outputDirectory>
                                 </artifactItem>
