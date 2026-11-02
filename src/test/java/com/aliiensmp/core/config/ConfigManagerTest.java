@@ -33,12 +33,17 @@ class ConfigManagerTest {
                                 "server:\n  name: custom\nlimit: 42\n"
                                         .getBytes(StandardCharsets.UTF_8)));
         var settings = new Settings();
+
         ConfigManager.bindConfig(yaml, settings);
+
         assertEquals("custom", settings.name);
         assertEquals(42, settings.limit);
         assertEquals("unchanged", settings.untouched);
+
         var other = new Settings();
+
         ConfigManager.bindConfig(yaml, other);
+
         assertEquals(42, other.limit);
     }
 
@@ -49,8 +54,10 @@ class ConfigManagerTest {
                 YamlDocument.create(
                         new ByteArrayInputStream(
                                 "enabled: true\n".getBytes(StandardCharsets.UTF_8)));
+
         try {
             ConfigManager.bindConfig(yaml, StaticSettings.class);
+
             assertTrue(StaticSettings.enabled);
         } finally {
             StaticSettings.enabled = false;
@@ -62,9 +69,12 @@ class ConfigManagerTest {
             @org.junit.jupiter.api.io.TempDir java.nio.file.Path directory) throws Exception {
         var file = directory.resolve("settings.yml").toFile();
         var yaml = YamlDocument.create(file);
+
         ConfigManager.bindConfig(yaml, new Settings());
+
         assertEquals("default", yaml.getString("server.name"));
         assertEquals(5, yaml.getInt("limit"));
+
         org.awaitility.Awaitility.await()
                 .atMost(java.time.Duration.ofSeconds(5))
                 .untilAsserted(

@@ -36,8 +36,10 @@ class PackagingIT {
     void jdbcServiceDescriptorResolvesToTheRelocatedDriver() throws Exception {
         try (var jar = new JarFile(Path.of("target", "AliienCore-1.0.0.jar").toFile())) {
             var descriptor = jar.getJarEntry("META-INF/services/java.sql.Driver");
+
             assertNotNull(descriptor);
             String providers;
+
             try (var input = jar.getInputStream(descriptor)) {
                 providers =
                         new String(input.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);

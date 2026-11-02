@@ -27,8 +27,11 @@ class ItemBuilderTest extends BukkitTest {
                         .glow(true)
                         .addStringTag(plugin, "owner", "test")
                         .build();
+
         assertEquals(2, item.getAmount());
+
         var meta = item.getItemMeta();
+
         assertEquals(Component.text("Sword"), meta.displayName());
         assertEquals(List.of(Component.text("first"), Component.text("second")), meta.lore());
         assertEquals(42, meta.getCustomModelData());
@@ -50,6 +53,7 @@ class ItemBuilderTest extends BukkitTest {
                         .addLoreLines(null)
                         .stringLore(null)
                         .build();
+
         assertEquals(5, item.getItemMeta().getCustomModelData());
         assertNull(item.getItemMeta().lore());
         assertDoesNotThrow(() -> new ItemBuilder(Material.AIR).glow(true).name("air").build());

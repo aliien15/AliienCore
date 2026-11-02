@@ -14,11 +14,15 @@ class PlayerUtilsTest extends BukkitTest {
     void itemsGoIntoInventoryAndOverflowIsDropped() {
         var player = server.addPlayer();
         var world = player.getWorld();
+
         PlayerUtils.giveItem(player, new ItemStack(Material.DIAMOND, 3));
+
         assertEquals(3, player.getInventory().getItem(0).getAmount());
         for (int slot = 0; slot < player.getInventory().getSize(); slot++)
             player.getInventory().setItem(slot, new ItemStack(Material.STONE, 64));
+
         PlayerUtils.giveItem(player, new ItemStack(Material.DIAMOND, 5));
+
         assertTrue(
                 world.getEntities().stream()
                         .filter(Item.class::isInstance)
@@ -32,9 +36,11 @@ class PlayerUtilsTest extends BukkitTest {
     @Test
     void nullAndAirInputsAreIgnored() {
         var player = server.addPlayer();
+
         PlayerUtils.giveItem(null, new ItemStack(Material.STONE));
         PlayerUtils.giveItem(player, null);
         PlayerUtils.giveItem(player, new ItemStack(Material.AIR));
+
         assertTrue(player.getInventory().isEmpty());
     }
 }

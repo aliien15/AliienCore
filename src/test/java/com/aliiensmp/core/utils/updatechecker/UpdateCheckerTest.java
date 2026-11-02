@@ -23,6 +23,7 @@ class UpdateCheckerTest {
         when(plugin.getDescription())
                 .thenReturn(new PluginDescriptionFile("TestPlugin", "1.0", "test.Main"));
         when(plugin.getLogger()).thenReturn(Logger.getLogger("update-test"));
+
         return plugin;
     }
 
@@ -31,6 +32,7 @@ class UpdateCheckerTest {
     void parsesVersionsAndRejectsHttpErrors(int status, String body, String expected)
             throws Exception {
         AtomicReference<String> agent = new AtomicReference<>();
+
         try (var http =
                 new HttpTestServer(
                         exchange -> {

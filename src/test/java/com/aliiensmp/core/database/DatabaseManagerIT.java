@@ -19,18 +19,22 @@ class DatabaseManagerIT {
         int port =
                 Integer.parseInt(required(backend.equals("mysql") ? "MYSQL_PORT" : "MARIADB_PORT"));
         DatabaseManager db = new DatabaseManager();
+
         try {
             if (backend.equals("mysql")) db.connectMySQL(host, port, "aliien_test", user, password);
             else db.connectMariaDB(host, port, "aliien_test", user, password);
+
             assertTrue(
                     db.executeAsync(
                                     "CREATE TABLE IF NOT EXISTS aliien_entries (id INT PRIMARY KEY,"
                                             + " value_text VARCHAR(200))")
                             .get(15, TimeUnit.SECONDS));
             assertTrue(db.executeAsync("DELETE FROM aliien_entries").get(15, TimeUnit.SECONDS));
+
             assertTrue(
                     db.executeAsync("INSERT INTO aliien_entries VALUES (?, ?)", 1, "O'Brien ☃")
                             .get(15, TimeUnit.SECONDS));
+
             assertEquals(
                     "O'Brien ☃",
                     db.queryAsync(
@@ -45,8 +49,10 @@ class DatabaseManagerIT {
                                     },
                                     1)
                             .get(15, TimeUnit.SECONDS));
+
             try (var connection = db.getConnection()) {
                 connection.setAutoCommit(false);
+
                 try (var statement =
                         connection.prepareStatement(
                                 "INSERT INTO aliien_entries VALUES (2, 'rollback')")) {
@@ -54,6 +60,7 @@ class DatabaseManagerIT {
                 }
                 connection.rollback();
             }
+
             assertEquals(
                     1,
                     db.queryAsync(

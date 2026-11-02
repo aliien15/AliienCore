@@ -33,6 +33,7 @@ public final class HttpTestServer implements AutoCloseable {
     public static void respond(HttpExchange exchange, int status, String text) {
         try {
             byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+
             exchange.sendResponseHeaders(status, bytes.length);
             exchange.getResponseBody().write(bytes);
         } catch (IOException e) {

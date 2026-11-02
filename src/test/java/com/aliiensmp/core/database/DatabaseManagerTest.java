@@ -28,17 +28,22 @@ class DatabaseManagerTest {
         Plugin plugin = mock(Plugin.class);
         when(plugin.getDataFolder()).thenReturn(directory.toFile());
         DatabaseManager db = new DatabaseManager();
+
         try {
             connect(db, plugin, backend);
+
             assertTrue(
                     db.executeAsync(
                                     "CREATE TABLE entries (id INTEGER PRIMARY KEY, value_text"
                                             + " VARCHAR(200))")
                             .get(10, TimeUnit.SECONDS));
+
             String hostile = "O'Brien'); DROP TABLE entries; -- \u2603";
+
             assertTrue(
                     db.executeAsync("INSERT INTO entries VALUES (?, ?)", 1, hostile)
                             .get(10, TimeUnit.SECONDS));
+
             assertEquals(
                     hostile,
                     db.queryAsync(
@@ -53,14 +58,20 @@ class DatabaseManagerTest {
                                     },
                                     1)
                             .get(10, TimeUnit.SECONDS));
+
             assertFalse(
                     db.executeAsync("INSERT INTO missing VALUES (?)", 1).get(10, TimeUnit.SECONDS));
+
             assertNull(
                     db.queryAsync("SELECT * FROM missing", rs -> "unexpected")
                             .get(10, TimeUnit.SECONDS));
+
             db.disconnect();
+
             assertThrows(SQLException.class, db::getConnection);
+
             connect(db, plugin, backend);
+
             assertEquals(
                     1,
                     db.queryAsync(
@@ -87,9 +98,11 @@ class DatabaseManagerTest {
     @Test
     void uninitializedAndRepeatedShutdownAreSafe() throws Exception {
         DatabaseManager db = new DatabaseManager();
+
         assertThrows(SQLException.class, db::getConnection);
         assertFalse(db.executeAsync("SELECT 1").get());
         assertNull(db.queryAsync("SELECT 1", rs -> 1).get());
+
         db.disconnect();
         db.disconnect();
     }
@@ -98,17 +111,23 @@ class DatabaseManagerTest {
     void arbitraryStringsRoundTripThroughPreparedStatements(
             @ForAll @StringLength(max = 100) String value) throws Exception {
         HikariConfig config = new HikariConfig();
+
         config.setJdbcUrl("jdbc:h2:mem:" + UUID.randomUUID());
         config.setMaximumPoolSize(1);
+
         DatabaseManager db = new DatabaseManager();
+
         try {
             db.connect(config);
+
             assertTrue(
                     db.executeAsync("CREATE TABLE entries (value_text VARCHAR(200))")
                             .get(5, TimeUnit.SECONDS));
+
             assertTrue(
                     db.executeAsync("INSERT INTO entries VALUES (?)", value)
                             .get(5, TimeUnit.SECONDS));
+
             assertEquals(
                     value,
                     db.queryAsync(

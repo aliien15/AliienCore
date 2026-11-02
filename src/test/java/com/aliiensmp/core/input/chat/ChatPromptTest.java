@@ -28,15 +28,19 @@ class ChatPromptTest extends BukkitTest {
         var task = mock(ScheduledTask.class);
         var received = new AtomicReference<String>();
         var cancelled = new AtomicInteger();
+
         ChatPrompt.ACTIVE_PROMPTS.put(
                 player.getUniqueId(),
                 new ChatPrompt.ActivePrompt(received::set, cancelled::incrementAndGet, task));
+
         var event = mock(AsyncChatEvent.class);
         when(event.getPlayer()).thenReturn(player);
         when(event.message()).thenReturn(Component.text("  hello  "));
         var listener = new ChatPromptListeners();
+
         listener.onChat(event);
         listener.onChat(event);
+
         assertEquals("hello", received.get());
         assertEquals(0, cancelled.get());
         assertFalse(ChatPrompt.hasPrompt(player.getUniqueId()));
@@ -51,6 +55,7 @@ class ChatPromptTest extends BukkitTest {
         for (int mode = 0; mode < 3; mode++) {
             var task = mock(ScheduledTask.class);
             var cancel = new AtomicInteger();
+
             ChatPrompt.ACTIVE_PROMPTS.put(
                     player.getUniqueId(),
                     new ChatPrompt.ActivePrompt(
@@ -59,9 +64,11 @@ class ChatPromptTest extends BukkitTest {
                             task));
             if (mode == 0) {
                 ChatPrompt.setCancellationToggle(" stop ");
+
                 var event = mock(AsyncChatEvent.class);
                 when(event.getPlayer()).thenReturn(player);
                 when(event.message()).thenReturn(Component.text(" StOp "));
+
                 listener.onChat(event);
             } else if (mode == 1)
                 listener.onCommand(new PlayerCommandPreprocessEvent(player, "/spawn"));
@@ -77,9 +84,11 @@ class ChatPromptTest extends BukkitTest {
     void shutdownCancelsTasksWithoutInvokingUserCancellationCallbacks() {
         var player = server.addPlayer();
         var task = mock(ScheduledTask.class);
+
         ChatPrompt.ACTIVE_PROMPTS.put(
                 player.getUniqueId(), new ChatPrompt.ActivePrompt(s -> fail(), () -> fail(), task));
         ChatPrompt.shutdown();
+
         verify(task).cancel();
         assertFalse(ChatPrompt.hasPrompt(player.getUniqueId()));
     }

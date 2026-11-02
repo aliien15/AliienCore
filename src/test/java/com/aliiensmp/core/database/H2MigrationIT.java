@@ -19,6 +19,7 @@ class H2MigrationIT {
         String url =
                 "jdbc:h2:file:" + directory.resolve("previous").toAbsolutePath() + ";MODE=MySQL";
         // Isolate the previous driver so the current dependency cannot create the fixture for it.
+
         try (var loader =
                 new URLClassLoader(
                         new java.net.URL[] {
@@ -27,6 +28,7 @@ class H2MigrationIT {
                         ClassLoader.getPlatformClassLoader())) {
             Driver previous =
                     (Driver) loader.loadClass("org.h2.Driver").getConstructor().newInstance();
+
             try (var connection = previous.connect(url, new Properties());
                     var statement = connection.createStatement()) {
                 statement.execute(

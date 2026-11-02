@@ -41,6 +41,7 @@ class DurationUtilsTest {
         Duration randomDuration = Duration.ofSeconds(seconds);
 
         long expectedTicks = seconds * 20;
+
         assertEquals(expectedTicks, DurationUtils.toTicks(randomDuration));
     }
 

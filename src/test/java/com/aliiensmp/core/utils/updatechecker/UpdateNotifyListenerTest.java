@@ -29,10 +29,14 @@ class UpdateNotifyListenerTest {
         when(allowed.hasPermission("updates")).thenReturn(true);
         var denied = mock(Player.class);
         var message = Component.text("New version");
+
         try (var http = new HttpTestServer(e -> HttpTestServer.respond(e, 200, "2.0"))) {
             var listener = new UpdateNotifyListener(plugin, http.url(), "updates", () -> message);
+
             listener.onJoin(new PlayerJoinEvent(denied, Component.empty()));
+
             verify(denied, never()).sendMessage(any(Component.class));
+
             await().atMost(Duration.ofSeconds(5))
                     .untilAsserted(
                             () -> {

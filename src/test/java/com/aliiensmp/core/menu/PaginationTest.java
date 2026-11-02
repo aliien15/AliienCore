@@ -11,6 +11,7 @@ class PaginationTest {
             @ForAll @IntRange(min = 1, max = 54) int slots,
             @ForAll @IntRange(min = 1, max = 1000000) int items) {
         int pages = new AliienGUI("Menu").getTotalPages(slots, items);
+
         assertTrue((long) pages * slots >= items);
         assertTrue((long) (pages - 1) * slots < items);
     }
@@ -19,6 +20,7 @@ class PaginationTest {
     void requestedPageIsAlwaysClamped(
             @ForAll int requested, @ForAll @IntRange(min = 1, max = 1000000) int total) {
         int actual = new AliienGUI("Menu").sanitizePage(requested, total);
+
         assertTrue(actual >= 1 && actual <= total);
         if (requested >= 1 && requested <= total) assertEquals(requested, actual);
     }

@@ -12,11 +12,15 @@ class MessageUtilsTest extends BukkitTest {
     @Test
     void messagesReplacePairsKeepUnmatchedTokensAndApplyPrefix() {
         var player = server.addPlayer();
+
         MessageUtils.send(
                 player, "[Core] ", "Hello %name% %unmatched%", "%name%", "Alex", "%unmatched%");
+
         assertEquals("[Core] Hello Alex %unmatched%", player.nextMessage());
+
         MessageUtils.send(player, null, null);
         MessageUtils.send(player, null, "");
+
         assertNull(player.nextMessage());
     }
 
@@ -24,7 +28,9 @@ class MessageUtilsTest extends BukkitTest {
     void broadcastsRespectFilterAndStillReachConsole() {
         var selected = server.addPlayer();
         var excluded = server.addPlayer();
+
         MessageUtils.broadcast(null, "Update %v%", p -> p.equals(selected), "%v%", "2");
+
         assertEquals("Update 2", selected.nextMessage());
         assertNull(excluded.nextMessage());
         assertEquals("Update 2", server.getConsoleSender().nextMessage());
@@ -33,8 +39,10 @@ class MessageUtilsTest extends BukkitTest {
     @Test
     void onlineDispatchIgnoresMissingPlayers() {
         var player = server.addPlayer();
+
         MessageUtils.sendIfOnline(player.getUniqueId(), null, "one");
         MessageUtils.sendIfOnline(player.getName(), null, "two");
+
         assertEquals("one", player.nextMessage());
         assertEquals("two", player.nextMessage());
         assertDoesNotThrow(() -> MessageUtils.sendIfOnline(UUID.randomUUID(), null, "missing"));
@@ -44,14 +52,19 @@ class MessageUtilsTest extends BukkitTest {
     @Test
     void actionBarsAndTitlesResolvePlaceholdersAndDefaultTimes() {
         var player = org.mockito.Mockito.mock(org.bukkit.entity.Player.class);
+
         MessageUtils.sendActionBar(player, "Hello %name%", "%name%", "Alex");
         org.mockito.Mockito.verify(player).sendActionBar(ColorUtils.color("Hello Alex"));
         MessageUtils.sendTitle(player, "Hi %name%", null, "%name%", "Alex");
+
         var title = org.mockito.ArgumentCaptor.forClass(net.kyori.adventure.title.Title.class);
+
         org.mockito.Mockito.verify(player).showTitle(title.capture());
+
         assertEquals(ColorUtils.color("Hi Alex"), title.getValue().title());
         assertEquals(net.kyori.adventure.text.Component.empty(), title.getValue().subtitle());
         assertEquals(java.time.Duration.ofMillis(3500), title.getValue().times().stay());
+
         MessageUtils.sendActionBar(player, null);
         MessageUtils.sendActionBar(player, "");
         org.mockito.Mockito.verifyNoMoreInteractions(player);
@@ -60,6 +73,7 @@ class MessageUtilsTest extends BukkitTest {
     @Test
     void offlineActionBarsAndTitlesAreSafeThroughBothLookupMethods() {
         UUID missing = UUID.randomUUID();
+
         assertDoesNotThrow(
                 () -> {
                     MessageUtils.sendActionBarIfOnline(missing, "ignored");

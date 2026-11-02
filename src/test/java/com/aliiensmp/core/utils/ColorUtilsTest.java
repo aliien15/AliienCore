@@ -111,9 +111,11 @@ class ColorUtilsTest {
     @Test
     void lorePreservesOrderAndNullLinesAndReturnsImmutableList() {
         var colored = ColorUtils.color(java.util.Arrays.asList("&cFirst", null, "Second"));
+
         assertEquals(3, colored.size());
         assertEquals(ColorUtils.color("&cFirst"), colored.get(0));
         assertEquals(Component.empty(), colored.get(1));
+
         org.junit.jupiter.api.Assertions.assertThrows(
                 UnsupportedOperationException.class, () -> colored.add(Component.empty()));
     }

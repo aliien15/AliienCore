@@ -18,6 +18,7 @@ class FileLoggerTest {
     private FileLogger logger() {
         Plugin plugin = mock(Plugin.class);
         when(plugin.getDataFolder()).thenReturn(directory.toFile());
+
         return new FileLogger(plugin);
     }
 
@@ -33,7 +34,9 @@ class FileLoggerTest {
                             () -> (n % 2 == 0 ? first : second).logAsync("message-" + n + " ☃"));
         }
         CompletableFuture.allOf(calls).get(5, TimeUnit.SECONDS);
+
         Path file = directory.resolve("events.log");
+
         await().atMost(Duration.ofSeconds(5))
                 .untilAsserted(
                         () -> {
@@ -53,9 +56,12 @@ class FileLoggerTest {
     @Test
     void disabledLoggingDoesNotCreateFilesAndCanBeReenabled() {
         var logger = logger().setEnabled(false);
+
         logger.logAsync("ignored");
+
         assertFalse(Files.exists(directory.resolve("logs.log")));
         assertTrue(logger.toggleEnabled());
+
         logger.logAsync("written");
         await().atMost(Duration.ofSeconds(5))
                 .untilAsserted(
@@ -63,6 +69,7 @@ class FileLoggerTest {
                                 assertTrue(
                                         Files.readString(directory.resolve("logs.log"))
                                                 .endsWith("written" + System.lineSeparator())));
+
         assertThrows(IllegalArgumentException.class, () -> logger.setFileName("  "));
     }
 }
