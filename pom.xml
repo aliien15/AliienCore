@@ -5,15 +5,17 @@
     <artifactId>AliienCore</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
+
     <properties>
         <java.version>21</java.version>
         <hikari.version>7.1.0</hikari.version>
         <mariadb.version>4.0.0</mariadb.version>
-        <h2.version>2.2.224</h2.version>
+        <h2.version>2.5.252</h2.version>
         <compiler.version>3.16.0</compiler.version>
         <shade.version>3.6.2</shade.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
     <repositories>
         <repository>
             <id>papermc</id>
@@ -24,6 +26,7 @@
             <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
         </repository>
     </repositories>
+
     <build>
         <plugins>
             <plugin>
@@ -42,6 +45,7 @@
                                 <artifactItem>
                                     <groupId>com.h2database</groupId>
                                     <artifactId>h2</artifactId>
+                                    <!-- Historical driver: keep pinned for migration testing. -->
                                     <version>2.2.224</version>
                                     <type>jar</type>
                                     <outputDirectory>${project.build.directory}/migration</outputDirectory>
@@ -51,6 +55,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -59,6 +64,7 @@
                     <failIfNoTests>true</failIfNoTests>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
@@ -80,6 +86,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -124,6 +131,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -133,6 +141,7 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -168,6 +177,7 @@
             </plugin>
         </plugins>
     </build>
+
     <dependencies>
         <dependency>
             <groupId>com.github.seeseemelk</groupId>
@@ -248,6 +258,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
     <profiles>
         <profile>
             <id>dependency-upgrades</id>
@@ -259,6 +270,7 @@
                 <shade.version>3.6.2</shade.version>
             </properties>
         </profile>
+
         <profile>
             <id>database-integration</id>
             <build>
