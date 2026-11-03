@@ -9,24 +9,20 @@ its distribution SHA-256. On Windows, use `mvnw.cmd` in place of `./mvnw`.
 pre-commit run --all-files
 ```
 
-`verify` runs JUnit Jupiter, jqwik properties, MockBukkit tests, packaging checks,
-and an H2 migration test. It also generates `target/site/jacoco/index.html` and
+`verify` runs JUnit Jupiter, jqwik properties, MockBukkit tests, and packaging
+checks. It also generates `target/site/jacoco/index.html` and
 requires at least 75% line coverage and 60% branch coverage. These are regression
 floors, not a claim of exhaustive coverage. Surefire and Failsafe XML reports are
 under `target/surefire-reports` and `target/failsafe-reports`.
 
-The default dependency versions are unchanged. `dependency-upgrades` selects the
-five versions proposed by the Dependabot PRs: Compiler 3.16.0, Shade 3.6.2,
-HikariCP 7.1.0, MariaDB Connector 4.0.0, and H2 2.5.252. Keep this compatibility
-profile synchronized with future dependency decisions.
+H2 is pinned to 2.2.224 in both dependency sets and ignored by Dependabot.
+The `dependency-upgrades` profile remains available for compatibility comparisons.
+Keep it synchronized with future dependency decisions.
 
 ## What the suite exercises
 
 - Database pooling, prepared parameters (including generated strings), failure
   handling, persistence, shutdown, and reconnects against real embedded H2 and SQLite.
-- An isolated H2 2.2.224 driver creates a temporary database; the selected driver
-  opens it, verifies existing data, writes, closes, and reopens it. This is a small
-  migration fixture, not a substitute for testing a copy of a production database.
 - GUI pagination and boundaries, opening inventories, marking cloned items,
   click routing, drag protection, leaked-item cleanup, drops, and pickups.
 - Item metadata, lore, tags, glow, player inventory overflow, messages, lifecycle,

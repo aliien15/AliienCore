@@ -190,7 +190,7 @@ public void openMenu(Player player) {
 ## Building and testing
 
 Use Java 21 and `./mvnw clean verify` to run the unit, property, MockBukkit,
-H2 migration, and packaging tests with Maven 3.9.16. See [the testing guide](docs/testing.md)
+and packaging tests with Maven 3.9.16. See [the testing guide](docs/testing.md)
 for dependency-upgrade comparisons, database integration tests, and coverage reports.
 
 ## 🤝 Contributing
