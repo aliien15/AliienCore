@@ -8,3 +8,10 @@ updates:
       - "aliien15"
     ignore:
       - dependency-name: "com.h2database:h2"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "aliien15"
