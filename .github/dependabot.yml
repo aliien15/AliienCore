@@ -9,6 +9,8 @@ updates:
     ignore:
       - dependency-name: "com.h2database:h2"
       - dependency-name: "io.papermc.paper:paper-api"
+    commit-message:
+      prefix: "chore"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -16,3 +18,5 @@ updates:
       interval: "weekly"
     reviewers:
       - "aliien15"
+    commit-message:
+      prefix: "chore"
