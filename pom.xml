@@ -41,7 +41,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.5.4</version>
+                <version>3.6.1</version>
                 <configuration>
                     <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
                     <includes>
@@ -250,7 +250,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>3.5.4</version>
+                        <version>3.6.1</version>
                         <configuration>
                             <includes combine.self="override">
                                 <include>**/*IT.java</include>
