@@ -142,6 +142,10 @@
                                     <pattern>org.mariadb.jdbc</pattern>
                                     <shadedPattern>com.aliiensmp.core.lib.mariadb</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.mysql</pattern>
+                                    <shadedPattern>com.aliiensmp.core.lib.mysql</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
@@ -203,7 +207,7 @@
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <version>26.10.0</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.xerial</groupId>
