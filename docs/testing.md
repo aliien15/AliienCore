@@ -29,11 +29,11 @@ Keep it synchronized with future dependency decisions.
   chat input/cancellation/replacement/timeout, configuration binding/default saves,
   concurrent UTF-8 logging, sounds, and update notifications.
 - Webhook JSON and update HTTP behavior against loopback HTTP servers only.
-- The final shaded JAR contains all four JDBC drivers and valid JDBC service
-  registrations, with MySQL/MariaDB relocated and H2/SQLite in their original
-  packages. An isolated classloader loads all four providers and executes H2 and
-  SQLite queries using the deliverable alone, including SQLite's
-  bundled native library. Test frameworks remain excluded.
+- The final shaded JAR includes relocated HikariCP and BoostedYAML but excludes
+  all four provided JDBC drivers, SQLite native resources, and test frameworks.
+  Packaging checks also reject JDBC service descriptors referencing absent drivers.
+  Embedded database tests use the provided drivers on Maven's test classpath;
+  they do not imply that these drivers ship in the deliverable.
 
 MockBukkit 3.133.2 is pinned to the existing Paper 1.21 API and Java 21 target.
 Its unimplemented Component inventory factory is bridged in the test fixture;

@@ -28,12 +28,24 @@ Then, add it as a dependency in your plugin's `pom.xml` and shade it:
 </dependency>
 ```
 
-The shaded AliienCore JAR bundles all four JDBC drivers: MySQL, MariaDB, SQLite,
-and H2. Consuming plugins do not need to add these drivers separately. MySQL and
-MariaDB are relocated under `com.aliiensmp.core.lib`; SQLite and H2 retain their
-original packages to preserve native-library loading and driver lookup. When
-shading AliienCore into your plugin, keep JDBC service registrations merged using
-Maven Shade's `ServicesResourceTransformer`.
+All four JDBC drivers (MySQL, MariaDB, SQLite, and H2) are marked `provided`
+and excluded from the AliienCore JAR to keep it small. HikariCP and BoostedYAML
+remain bundled and relocated. Database helpers still support all four backends,
+but your plugin must make its chosen driver available at runtime, for example
+through its runtime library configuration or by explicitly shading that driver.
+AliienCore's provided drivers are not transitive runtime dependencies.
+
+| Backend | Driver dependency | Driver class |
+| --- | --- | --- |
+| MySQL | `com.mysql:mysql-connector-j:26.10.0` | `com.mysql.cj.jdbc.Driver` |
+| MariaDB | `org.mariadb.jdbc:mariadb-java-client:4.0.0` | `org.mariadb.jdbc.Driver` |
+| SQLite | `org.xerial:sqlite-jdbc:3.54.1.0` | `org.sqlite.JDBC` |
+| H2 | `com.h2database:h2:2.2.224` | `org.h2.Driver` |
+
+Supply only the drivers you use; do not assume a server exposes a compatible
+copy to your plugin. If shading a driver, merge JDBC service registrations with
+Maven Shade's `ServicesResourceTransformer`. Preserve SQLite's native resources
+and original package layout, and keep `org.h2.Driver` available for the H2 helper.
 
 ### 2. Initialization
 All plugins utilizing this library **must** initialize the core in their `onEnable()` method before using any features. You can initialize everything by default, or selectively toggle features to avoid registering unnecessary events:
