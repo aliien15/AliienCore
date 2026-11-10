@@ -28,6 +28,13 @@ Then, add it as a dependency in your plugin's `pom.xml` and shade it:
 </dependency>
 ```
 
+The shaded AliienCore JAR bundles all four JDBC drivers: MySQL, MariaDB, SQLite,
+and H2. Consuming plugins do not need to add these drivers separately. MySQL and
+MariaDB are relocated under `com.aliiensmp.core.lib`; SQLite and H2 retain their
+original packages to preserve native-library loading and driver lookup. When
+shading AliienCore into your plugin, keep JDBC service registrations merged using
+Maven Shade's `ServicesResourceTransformer`.
+
 ### 2. Initialization
 All plugins utilizing this library **must** initialize the core in their `onEnable()` method before using any features. You can initialize everything by default, or selectively toggle features to avoid registering unnecessary events:
 
